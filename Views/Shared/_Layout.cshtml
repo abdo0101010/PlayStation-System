@@ -1,0 +1,40 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - بلايستيشن مانجر</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.rtl.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="bg-light">
+
+    <!-- Layout Wrapper (Flexbox) -->
+    <div class="d-flex">
+
+        <!-- 1. الـ Sidebar الجانبي -->
+        <partial name="PartialsView/_LayoutSidebar" />
+
+        <!-- 2. منطقة المحتوى الرئيسي + Header علوي بسيط -->
+        <div class="w-100 d-flex flex-column min-vh-100">
+
+            <!-- (اختياري) Header مصغر أعلى المحتوى -->
+            <partial name="PartialsView/_layoutHeader" />
+
+            <!-- محتوى الصفحات المتغير -->
+            <main role="main" class="flex-grow-1 p-4">
+                @RenderBody()
+            </main>
+
+            <!-- الـ Footer -->
+            <partial name="PartialsView/_LayoutFooter" />
+        </div>
+
+    </div>
+
+    <partial name="PartialsView/_LayoutScripts" />
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

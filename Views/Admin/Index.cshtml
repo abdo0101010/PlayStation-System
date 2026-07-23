@@ -1,0 +1,161 @@
+﻿@model IEnumerable<User>
+
+@{
+    ViewData["Title"] = "لوحة تحكم الأدمن";
+}
+
+<div class="container-fluid" dir="rtl">
+
+    <!-- Title & Quick Actions -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">
+                <i class="fa-solid fa-user-gear text-warning me-2"></i>لوحة إدارة النظام
+            </h2>
+            <p class="text-muted small mb-0">إدارة الكاشيرية، حسابات المستخدمين، ومتابعة الورديات</p>
+        </div>
+        <div>
+            <a asp-action="CreateUser" class="btn btn-success rounded-pill px-4 shadow-sm">
+                <i class="fa-solid fa-user-plus me-1"></i><a href="admin/createuser">إضافة موظف جديد</a>
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards (كروت الإحصائيات السريعة) -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-primary text-white rounded-3">
+                <div class="card-body d-flex align-items-center justify-content-between p-3">
+                    <div>
+                        <h6 class="text-white-50 small mb-1">إجمالي الموظفين</h6>
+                        <h3 class="fw-bold mb-0">@ViewBag.TotalUsers</h3>
+                    </div>
+                    <i class="fa-solid fa-users fa-2x text-white-50"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-success text-white rounded-3">
+                <div class="card-body d-flex align-items-center justify-content-between p-3">
+                    <div>
+                        <h6 class="text-white-50 small mb-1">إجمالي الورديات المسجلة</h6>
+                        <h3 class="fw-bold mb-0">@ViewBag.TotalShifts</h3>
+                    </div>
+                    <i class="fa-solid fa-cash-register fa-2x text-white-50"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-dark text-white rounded-3">
+                <div class="card-body d-flex align-items-center justify-content-between p-3">
+                    <div>
+                        <h6 class="text-white-50 small mb-1">حالة النظام</h6>
+                        <h5 class="fw-bold text-warning mb-0"><i class="fa-solid fa-shield-halved me-1"></i> آمن ومستقر</h5>
+                    </div>
+                    <i class="fa-solid fa-server fa-2x text-white-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users Table (جدول إدارة الموظفين) -->
+    <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between border-bottom">
+            <h5 class="fw-bold mb-0 text-secondary">
+                <i class="fa-solid fa-users-gear me-2 text-primary"></i>قائمة الموظفين والكاشيرية
+            </h5>
+            <span class="badge bg-light text-dark border">@Model.Count() موظف</span>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 text-center">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>اسم المستخدم</th>
+                            <th>رقم الهاتف</th>
+                            <th>الصلاحية (Role)</th>
+                            <th>الحالة</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="6" class="text-muted py-4">لا يوجد موظفين مسجلين حالياً</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var user in Model)
+                            {
+                                <tr>
+                                    <td class="fw-bold">@user.Id</td>
+                                    <td>
+                                        <div class="d-flex align-items-center justify-content-center gap-2">
+                                            <i class="fa-solid fa-circle-user fa-lg text-secondary"></i>
+                                            <span class="fw-semibold">@user.Username</span>
+                                        </div>
+                                    </td>
+                                    <td>@(string.IsNullOrEmpty(user.PhoneNumber) ? "غير محدد" : user.PhoneNumber)</td>
+                                    <td>
+                                        @if (user.Role == "Admin")
+                                        {
+                                            <span class="badge bg-danger px-3 py-2">أدمن (Admin)</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-info text-dark px-3 py-2">كاشير (Cashier)</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (user.IsActive)
+                                        {
+                                            <span class="badge bg-success-subtle text-success border border-success px-3 py-1 rounded-pill">
+                                                <i class="fa-solid fa-check me-1"></i> نشط
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger-subtle text-danger border border-danger px-3 py-1 rounded-pill">
+                                                <i class="fa-solid fa-xmark me-1"></i> معطل
+                                            </span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group gap-1" role="group">
+                                            <!-- تعديل -->
+                                            <a asp-action="EditUser" asp-route-id="@user.Id" class="btn btn-sm btn-outline-primary rounded-2" title="تعديل">
+                                                <i class="fa-solid fa-pen-to-square"></i>
+                                            </a>
+                                            <!-- حذف -->
+                                            <form asp-action="DeleteUser" asp-route-id="@user.Id" method="post" style="display:inline;">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit"
+                                                        class="btn btn-sm btn-outline-danger rounded-2"
+                                                        onclick="return confirm('هل أنت متأكد من حذف هذا الموظف؟');"
+                                                        title="حذف">
+                                                    <i class="fa-solid fa-trash-can"></i>
+
+                                                </button>
+                                                
+                                            </form>
+                                            <a asp-action="GetDetailsForUser" asp-route-id="@user.Id" class="btn btn-sm btn-outline-info rounded-2" title="عرض التفاصيل">
+                                                <i class="fa-solid fa-eye"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
