@@ -1,0 +1,80 @@
+﻿<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm border-bottom border-secondary sticky-top">
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm border-bottom border-secondary sticky-top" dir="rtl">
+            <div class="container-fluid px-4">
+
+                <!-- Brand / Logo -->
+                <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-warning" asp-controller="Home" asp-action="Index">
+                    <i class="fa-solid fa-gamepad fa-lg"></i>
+                    <span>بلايستيشن مانجر</span>
+                </a>
+
+                <!-- Toggle Button for Mobile -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Navbar Links -->
+                <div class="collapse navbar-collapse" id="mainNavbar">
+
+                    <!-- Main Navigation Links -->
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 fw-semibold">
+                        <li class="nav-item">
+                            <a class="nav-link text-white active" asp-controller="Dashboard" asp-action="Index">
+                                <i class="fa-solid fa-gauge-high me-1 text-info"></i> الشاشات الرئيسية
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" asp-controller="Devices" asp-action="Index">
+                                <i class="fa-solid fa-tv me-1 text-warning"></i> الأجهزة والأسعار
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" asp-controller="Products" asp-action="Index">
+                                <i class="fa-solid fa-mug-hot me-1 text-danger"></i> المشروبات والمخزن
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" asp-controller="Shifts" asp-action="Index">
+                                <i class="fa-solid fa-cash-register me-1 text-success"></i> الورديات والتقارير
+                            </a>
+                        </li>
+                    </ul>
+
+                    <!-- Right Side Actions (Active Shift Status & Profile) -->
+                    <div class="d-flex align-items-center gap-3">
+
+                        <!-- Shift Status Badge -->
+                        <div class="bg-dark border border-success rounded-pill px-3 py-1 d-flex align-items-center gap-2">
+                            <span class="spinner-grow spinner-grow-sm text-success" role="status"></span>
+                            <small class="text-light">الوردية الحالية: <strong class="text-success">شغالة (عبده)</strong></small>
+                        </div>
+
+                        <!-- User Profile Dropdown -->
+                        <div class="dropdown">
+                            <button class="btn btn-outline-light dropdown-toggle d-flex align-items-center gap-2 rounded-pill px-3" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa-solid fa-user-circle fa-lg text-warning"></i>
+                                <span>الكاشير</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userMenu">
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2 text-danger" asp-controller="Shifts" asp-action="CloseShift">
+                                        <i class="fa-solid fa-lock"></i> إنهاء الوردية (تقفيل)
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center gap-2" asp-controller="Account" asp-action="Logout">
+                                        <i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </nav>
+    </header>
+</nav>

@@ -1,0 +1,90 @@
+﻿<div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark shadow-sm border-start border-secondary min-vh-100" style="width: 260px;" dir="rtl">
+
+    <!-- Header / Brand -->
+    <a asp-controller="Dashboard" asp-action="Index" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-warning text-decoration-none gap-2 px-2">
+        <i class="fa-solid fa-gamepad fa-2x"></i>
+        <span class="fs-5 fw-bold">بلايستيشن مانجر</span>
+    </a>
+
+    <hr class="text-secondary my-3">
+
+    <!-- Shift Info Widget (مصغر) -->
+    <div class="bg-secondary bg-opacity-25 rounded p-2 mb-3 border border-secondary text-center">
+        <small class="text-muted d-block mb-1">الوردية الحالية</small>
+        <span class="badge bg-success text-white px-2 py-1 mb-1">
+            <i class="fa-solid fa-circle fa-beat me-1"></i> شغالة
+        </span>
+        <div class="fw-bold text-light small">الكاشير: عبده</div>
+    </div>
+
+    <!-- Navigation Links -->
+    <ul class="nav nav-pills flex-column mb-auto gap-1">
+        <li class="nav-item">
+            <a asp-controller="Dashboard" asp-action="Index" class="nav-link text-white active d-flex align-items-center gap-2">
+                <i class="fa-solid fa-gauge-high text-info" style="width: 20px;"></i>
+                <span>لوحة الشاشات</span>
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Sessions" asp-action="Active" class="nav-link text-white d-flex align-items-center gap-2">
+                <i class="fa-solid fa-clock text-success" style="width: 20px;"></i>
+                <span>الجلسات المفتوحة</span>
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Devices" asp-action="Index" class="nav-link text-white d-flex align-items-center gap-2">
+                <i class="fa-solid fa-tv text-warning" style="width: 20px;"></i>
+                <span>الأجهزة والأسعار</span>
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Products" asp-action="Index" class="nav-link text-white d-flex align-items-center gap-2">
+                <i class="fa-solid fa-mug-hot text-danger" style="width: 20px;"></i>
+                <span>المشروبات والمخزن</span>
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Customers" asp-action="Index" class="nav-link text-white d-flex align-items-center gap-2">
+                <i class="fa-solid fa-users text-primary" style="width: 20px;"></i>
+                <span>العملاء والديون</span>
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Shifts" asp-action="Index" class="nav-link text-white d-flex align-items-center gap-2">
+                <i class="fa-solid fa-cash-register text-info" style="width: 20px;"></i>
+                <span>الورديات والتقارير</span>
+            </a>
+        </li>
+    </ul>
+
+    <hr class="text-secondary">
+
+    <!-- User Profile & Shift Controls -->
+    <div class="dropdown">
+        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle gap-2 px-2" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fa-solid fa-circle-user fa-2x text-warning"></i>
+            <div>
+                <strong class="d-block small">أحمد الموظف</strong>
+                <small class="text-muted" style="font-size: 11px;">Admin</small>
+            </div>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-dark text-small shadow text-end" aria-labelledby="dropdownUser1">
+            <li>
+                <a class="dropdown-item text-warning d-flex align-items-center gap-2" asp-controller="Shifts" asp-action="CloseShift">
+                    <i class="fa-solid fa-lock"></i> تقفيل الوردية
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <a class="dropdown-item text-danger d-flex align-items-center gap-2" asp-controller="Account" asp-action="Logout">
+                    <i class="fa-solid fa-right-from-bracket"></i> خروج
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
