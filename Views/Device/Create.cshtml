@@ -1,0 +1,103 @@
+﻿@model Device
+
+@{
+    ViewData["Title"] = "إضافة جهاز جديد";
+}
+
+<div class="container py-3" dir="rtl">
+
+    <!-- Top Bar & Back Button -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h3 class="fw-bold mb-1">
+                <i class="fa-solid fa-gamepad text-success me-2"></i>إضافة جهاز / شاشة جديدة
+            </h3>
+            <p class="text-muted small mb-0">أدخل بيانات الجهاز وسعر الساعة للـ Single والـ Multi</p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4">
+            <i class="fa-solid fa-arrow-right me-1"></i> رجوع للأجهزة
+        </a>
+    </div>
+
+    <!-- Form Card -->
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <!-- Device Name -->
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label fw-bold">اسم الجهاز / الشاشة</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-tv text-muted"></i></span>
+                                <input asp-for="Name" class="form-control" placeholder="مثال: جهاز 1 - VIP" required />
+                            </div>
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Device Type -->
+                        <div class="mb-3">
+                            <label asp-for="Type" class="form-label fw-bold">نوع الجهاز</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-layer-group text-muted"></i></span>
+                                <select asp-for="Type" class="form-select" required>
+                                    <option value="">-- اختر نوع الجهاز --</option>
+                                    <option value="PlayStation 4">PlayStation 4</option>
+                                    <option value="PlayStation 5">PlayStation 5</option>
+                                    <option value="VR">VR</option>
+                                    <option value="Xbox">Xbox</option>
+                                </select>
+                            </div>
+                            <span asp-validation-for="Type" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Single Hourly Rate -->
+                        <div class="mb-3">
+                            <label asp-for="HourPriceSingle" class="form-label fw-bold">سعر الساعة (Single)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-user text-muted"></i></span>
+                                <input asp-for="HourPriceSingle" type="number" step="0.01" class="form-control" placeholder="0.00" required />
+                                <span class="input-group-text bg-light">ج.م</span>
+                            </div>
+                            <span asp-validation-for="HourPriceSingle" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Multi Hourly Rate -->
+                        <div class="mb-3">
+                            <label asp-for="HourPriceMulti" class="form-label fw-bold">سعر الساعة (Multi)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-user-group text-muted"></i></span>
+                                <input asp-for="HourPriceMulti" type="number" step="0.01" class="form-control" placeholder="0.00" required />
+                                <span class="input-group-text bg-light">ج.م</span>
+                            </div>
+                            <span asp-validation-for="HourPriceMulti" class="text-danger small"></span>
+                        </div>
+
+                        <!-- IsOccupied Switch (افتراضياً متاح) -->
+                        <div class="mb-4 form-check form-switch dir-ltr d-flex align-items-center justify-content-between p-3 bg-light rounded-2 border">
+                            <label class="form-check-label fw-bold mb-0 me-3" for="isOccupiedSwitch">تحديد الجهاز كـ (مشغول حالياً)</label>
+                            <input class="form-check-input ms-0" type="checkbox" asp-for="IsOccupied" id="isOccupiedSwitch" style="width: 2.5em; height: 1.3em;">
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg rounded-pill fw-bold shadow-sm">
+                                <i class="fa-solid fa-check-circle me-1"></i> حفظ الجهاز
+                            </button>
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

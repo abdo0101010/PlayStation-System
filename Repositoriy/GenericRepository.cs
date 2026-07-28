@@ -8,11 +8,11 @@ namespace PlaystationSystem.Repositoriy
     {
         private ApplicationDbContext _context;
         private DbSet<T> entities;
-        public GenericRepository(ApplicationDbContext context, DbSet<T> db ) {
+        public GenericRepository(ApplicationDbContext context) {
             _context = context;
             entities = context.Set<T>();
         }
-        public async Task Add(T entity) {
+        public async Task AddAsync(T entity) {
            await  _context.AddAsync( entity );
         }
         public async Task Update(T Entity)
@@ -52,24 +52,19 @@ namespace PlaystationSystem.Repositoriy
             return await entities.Where(predicate).ToListAsync();
         }
 
-        public Task AddAsync(T entity)
-        {
-            throw new NotImplementedException();
-        }
 
-        void IGenericRepository<T>.Update(T entity)
-        {
-            throw new NotImplementedException();
-        }
+       
 
-        public void Delete(T entity)
+        public async Task Delete(T entity)
         {
-            throw new NotImplementedException();
-        }
+            if (entity == null)
+            {
+                throw new ArgumentNullException(nameof(entity));
+            }
+         entities.Remove(entity);
+        }  
+        
 
-        public Task DeleteByIdAsync(int id)
-        {
-            throw new NotImplementedException();
-        }
+        
     }
 }
