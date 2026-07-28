@@ -8,9 +8,8 @@ namespace PlaystationSystem.Repositoriy
         Task<IEnumerable<T>> GetAllAsync();
         Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate);
         Task AddAsync(T entity);
-        void Update(T entity);
-        void Delete(T entity);
-        Task DeleteByIdAsync(int id);
+        public Task Update(T Entity);
+        public Task Delete(T entity);
         Task<int> SaveChangesAsync();
 
     }

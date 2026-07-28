@@ -4008,11 +4008,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\patch-pes13\\projects-mvc\\PlaystationSystem\\PlaystationSystem.csproj",
+      "projectUniqueName": "D:\\patch-pes13\\projects-mvc\\PlaystationSystem\\PlayStation-System\\PlaystationSystem.csproj",
       "projectName": "PlaystationSystem",
-      "projectPath": "D:\\patch-pes13\\projects-mvc\\PlaystationSystem\\PlaystationSystem.csproj",
+      "projectPath": "D:\\patch-pes13\\projects-mvc\\PlaystationSystem\\PlayStation-System\\PlaystationSystem.csproj",
       "packagesPath": "C:\\Users\\Abdo\\.nuget\\packages\\",
-      "outputPath": "D:\\patch-pes13\\projects-mvc\\PlaystationSystem\\obj\\",
+      "outputPath": "D:\\patch-pes13\\projects-mvc\\PlaystationSystem\\PlayStation-System\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

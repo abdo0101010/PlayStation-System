@@ -18,6 +18,8 @@ namespace PlaystationSystem
 
             builder.Services.AddScoped<IAdminRepositoriy, AdminRepositoriy>();
             builder.Services.AddScoped<IAdminServices, AdminServices>();
+            builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+            builder.Services.AddScoped(typeof(IGenericService<>), typeof(GenericService<>));
             var app = builder.Build();
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())

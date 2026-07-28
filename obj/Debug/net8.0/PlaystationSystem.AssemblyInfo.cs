@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PlaystationSystem")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+239a4fa77673a3ba5a441c260b264cd3fb07f0ce")]
 [assembly: System.Reflection.AssemblyProductAttribute("PlaystationSystem")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PlaystationSystem")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
