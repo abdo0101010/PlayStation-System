@@ -43,6 +43,10 @@ namespace PlaystationSystem.Services
             return _repository.SaveChangesAsync();
 
         }
+        public async Task DeleteById(int id)
+        {
+            await _repository.DeleteById(id);
+        }
         // Implement methods from IGenericService<TEntity>
     }
 }

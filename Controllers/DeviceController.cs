@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PlaystationSystem.Models;
 using PlaystationSystem.Services;
+using PlaystationSystem.ViewModel;
 
 namespace PlaystationSystem.Controllers
 {
@@ -69,6 +70,31 @@ namespace PlaystationSystem.Controllers
             await _deviceService.Delete(device);
             await _deviceService.SaveChangesAsync();
             return RedirectToAction("Index");
+        }
+        public async Task<IActionResult> GetPricing()
+        {
+            var DevicesList = await _deviceService.GetAllAsync();
+            var pricingList = new List<PricingDeviceViewMOdel>();
+            foreach (var device in DevicesList)
+            {
+                var pricing = new PricingDeviceViewMOdel
+                {
+                    DeviceId = device.Id,
+                    DeviceName = device.Name,
+                    HourPriceSingle = device.HourPriceSingle,
+                    HourPriceMulti = device.HourPriceMulti
+                    ,Type = device.Type
+                    ,IsOccupied = device.IsOccupied
+                };
+                pricingList.Add(pricing);
+            }
+            ViewBag.AverageSinglePrice = pricingList.Any() ? pricingList.Average(p => p.HourPriceSingle) : 0;
+            ViewBag.AverageMultiPrice = pricingList.Any() ? pricingList.Average(p => p.HourPriceMulti) : 0;
+            if (pricingList.Count == 0)
+            {
+                return NotFound();
+            }
+            return View(pricingList);
         }
     }
 }
