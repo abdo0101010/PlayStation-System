@@ -11,6 +11,7 @@ namespace PlaystationSystem.Repositoriy
         public Task Update(T Entity);
         public Task Delete(T entity);
         Task<int> SaveChangesAsync();
+        public  Task DeleteById(int id);
 
     }
 }

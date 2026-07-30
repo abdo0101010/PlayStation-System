@@ -63,6 +63,15 @@ namespace PlaystationSystem.Repositoriy
             }
          entities.Remove(entity);
         }  
+        public async Task DeleteById(int id)
+        {
+            var entity = await entities.FindAsync(id);
+            if (entity == null)
+            {
+                throw new ArgumentNullException(nameof(entity));
+            }
+            entities.Remove(entity);
+        }
         
 
         
