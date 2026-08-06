@@ -3,62 +3,14 @@ using PlaystationSystem.Models;
 
 namespace PlaystationSystem.Repositoriy
 {
-    public class AdminRepositoriy : IAdminRepositoriy
+    public class AdminRepository : IAdminRepositoriy
     {
         private readonly ApplicationDbContext _context;
 
-        public AdminRepositoriy(ApplicationDbContext context)
+        public AdminRepository(ApplicationDbContext context)
         {
             _context = context;
         }
-
-        #region User Operations
-        public async Task<List<User>> GetAllUsersAsync()
-        {
-            return await _context.Users.ToListAsync();
-        }
-
-        public async Task<User?> GetUserByIdAsync(int id)
-        {
-            return await _context.Users.FindAsync(id);
-        }
-
-        // تعديل نوع الإرجاع لـ Task<User> عشان يتوافق مع الـ Interface
-        public async Task<User> AddUserAsync(User user)
-        {
-            await _context.Users.AddAsync(user);
-            await _context.SaveChangesAsync();
-            return user;
-        }
-
-        public async Task<User?> UpdateUserAsync(User user)
-        {
-            var existingUser = await _context.Users.FindAsync(user.Id);
-            if (existingUser == null)
-            {
-                return null;
-            }
-
-            existingUser.Username = user.Username;
-            existingUser.PhoneNumber = user.PhoneNumber;
-            existingUser.Password = user.Password;
-            existingUser.Role = user.Role;
-            existingUser.IsActive = user.IsActive;
-
-            await _context.SaveChangesAsync();
-            return existingUser;
-        }
-
-        public async Task DeleteUserAsync(int id)
-        {
-            var user = await _context.Users.FindAsync(id);
-            if (user != null)
-            {
-                _context.Users.Remove(user);
-                await _context.SaveChangesAsync();
-            }
-        }
-        #endregion
 
         #region Shift Operations
         public async Task<List<Shifts>> GetAllShiftsAsync()

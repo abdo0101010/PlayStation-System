@@ -1,4 +1,4 @@
-﻿@model User
+﻿@model PlaystationSystem.Models.ApplicationUser
 
 @{
     ViewData["Title"] = "تعديل بيانات الموظف";
@@ -12,7 +12,7 @@
             <h3 class="fw-bold mb-1">
                 <i class="fa-solid fa-user-pen text-primary me-2"></i>تعديل بيانات الموظف
             </h3>
-            <p class="text-muted small mb-0">تحديث معلومات الحساب أو الصلاحية للموظف: <strong>@Model.Username</strong></p>
+            <p class="text-muted small mb-0">تحديث معلومات الحساب للموظف: <strong>@Model.FullName</strong></p>
         </div>
         <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4">
             <i class="fa-solid fa-arrow-right me-1"></i> رجوع للوحة التحكم
@@ -31,25 +31,34 @@
                         <!-- Hidden ID -->
                         <input type="hidden" asp-for="Id" />
 
-                        <!-- Username -->
+                        <!-- Full Name -->
                         <div class="mb-3">
-                            <label asp-for="Id" hidden></label>
-                            <label asp-for="Username" class="form-label fw-bold">اسم المستخدم (Username)</label>
+                            <label asp-for="FullName" class="form-label fw-bold">الاسم بالكامل</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-light"><i class="fa-solid fa-user text-muted"></i></span>
-                                <input asp-for="Username" class="form-control" placeholder="اسم المستخدم" required />
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-id-card text-muted"></i></span>
+                                <input asp-for="FullName" class="form-control" placeholder="الاسم بالكامل" required />
                             </div>
-                            <span asp-validation-for="Username" class="text-danger small"></span>
+                            <span asp-validation-for="FullName" class="text-danger small"></span>
                         </div>
 
-                        <!-- Password -->
+                        <!-- Username -->
                         <div class="mb-3">
-                            <label asp-for="Password" class="form-label fw-bold">كلمة المرور</label>
+                            <label asp-for="UserName" class="form-label fw-bold">اسم المستخدم (Username)</label>
                             <div class="input-group">
-                                <span class="input-group-text bg-light"><i class="fa-solid fa-key text-muted"></i></span>
-                                <input asp-for="Password" type="password" class="form-control" placeholder="أدخل كلمة المرور الجديدة أو اتركها القديمة" required />
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-user text-muted"></i></span>
+                                <input asp-for="UserName" class="form-control" placeholder="اسم المستخدم" required />
                             </div>
-                            <span asp-validation-for="Password" class="text-danger small"></span>
+                            <span asp-validation-for="UserName" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label fw-bold">البريد الإلكتروني</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-envelope text-muted"></i></span>
+                                <input asp-for="Email" type="email" class="form-control" placeholder="example@domain.com" />
+                            </div>
+                            <span asp-validation-for="Email" class="text-danger small"></span>
                         </div>
 
                         <!-- Phone Number -->
@@ -60,19 +69,6 @@
                                 <input asp-for="PhoneNumber" class="form-control" placeholder="010xxxxxxxx" />
                             </div>
                             <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
-                        </div>
-
-                        <!-- Role Selection -->
-                        <div class="mb-3">
-                            <label asp-for="Role" class="form-label fw-bold">الصلاحية (Role)</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light"><i class="fa-solid fa-user-shield text-muted"></i></span>
-                                <select asp-for="Role" class="form-select">
-                                    <option value="Cashier">كاشير (Cashier)</option>
-                                    <option value="Admin">أدمن (Admin)</option>
-                                </select>
-                            </div>
-                            <span asp-validation-for="Role" class="text-danger small"></span>
                         </div>
 
                         <!-- IsActive Switch -->

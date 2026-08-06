@@ -1,10 +1,10 @@
-﻿@model IEnumerable<User>
+﻿@model IEnumerable<PlaystationSystem.Models.ApplicationUser>
 
 @{
     ViewData["Title"] = "لوحة تحكم الأدمن";
 }
 
-<div class="container-fluid" dir="rtl">
+<div class="container-fluid py-3" dir="rtl">
 
     <!-- Title & Quick Actions -->
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -15,8 +15,8 @@
             <p class="text-muted small mb-0">إدارة الكاشيرية، حسابات المستخدمين، ومتابعة الورديات</p>
         </div>
         <div>
-            <a asp-action="CreateUser" class="btn btn-success rounded-pill px-4 shadow-sm">
-                <i class="fa-solid fa-user-plus me-1"></i><a href="admin/createuser">إضافة موظف جديد</a>
+            <a asp-action="CreateUser" class="btn btn-success rounded-pill px-4 shadow-sm fw-bold">
+                <i class="fa-solid fa-user-plus me-1"></i> إضافة موظف جديد
             </a>
         </div>
     </div>
@@ -74,10 +74,10 @@
                 <table class="table table-hover align-middle mb-0 text-center">
                     <thead class="table-light">
                         <tr>
-                            <th>#</th>
+                            <th>الاسم بالكامل</th>
                             <th>اسم المستخدم</th>
                             <th>رقم الهاتف</th>
-                            <th>الصلاحية (Role)</th>
+                            <th>تاريخ الإنشاء</th>
                             <th>الحالة</th>
                             <th>الإجراءات</th>
                         </tr>
@@ -94,24 +94,15 @@
                             @foreach (var user in Model)
                             {
                                 <tr>
-                                    <td class="fw-bold">@user.Id</td>
                                     <td>
                                         <div class="d-flex align-items-center justify-content-center gap-2">
                                             <i class="fa-solid fa-circle-user fa-lg text-secondary"></i>
-                                            <span class="fw-semibold">@user.Username</span>
+                                            <span class="fw-bold text-dark">@user.FullName</span>
                                         </div>
                                     </td>
+                                    <td class="fw-semibold text-muted">@@user.UserName</td>
                                     <td>@(string.IsNullOrEmpty(user.PhoneNumber) ? "غير محدد" : user.PhoneNumber)</td>
-                                    <td>
-                                        @if (user.Role == "Admin")
-                                        {
-                                            <span class="badge bg-danger px-3 py-2">أدمن (Admin)</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-info text-dark px-3 py-2">كاشير (Cashier)</span>
-                                        }
-                                    </td>
+                                    <td class="small text-muted">@user.CreatedAt.ToString("yyyy-MM-dd")</td>
                                     <td>
                                         @if (user.IsActive)
                                         {
@@ -140,10 +131,9 @@
                                                         onclick="return confirm('هل أنت متأكد من حذف هذا الموظف؟');"
                                                         title="حذف">
                                                     <i class="fa-solid fa-trash-can"></i>
-
                                                 </button>
-                                                
                                             </form>
+                                            <!-- عرض التفاصيل -->
                                             <a asp-action="GetDetailsForUser" asp-route-id="@user.Id" class="btn btn-sm btn-outline-info rounded-2" title="عرض التفاصيل">
                                                 <i class="fa-solid fa-eye"></i>
                                             </a>

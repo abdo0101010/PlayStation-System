@@ -12,30 +12,8 @@ namespace PlaystationSystem.Services
             _adminRepo = adminRepo;
         }
 
-        public async Task<List<User>> GetAllUsersAsync()
-        {
-            return await _adminRepo.GetAllUsersAsync();
-        }
-
-        public async Task<User?> GetUserByIdAsync(int id)
-        {
-            return await _adminRepo.GetUserByIdAsync(id);
-        }
-
-        public async Task<User> AddUserAsync(User user)
-        {
-            return await _adminRepo.AddUserAsync(user);
-        }
-
-        public async Task<User?> UpdateUserAsync(User user)
-        {
-            return await _adminRepo.UpdateUserAsync(user);
-        }
-
-        public async Task DeleteUserAsync(int id)
-        {
-            await _adminRepo.DeleteUserAsync(id);
-        }
+     
+    
 
         public async Task<List<Shifts>> GetAllShiftsAsync()
         {

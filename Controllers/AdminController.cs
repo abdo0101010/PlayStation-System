@@ -1,21 +1,28 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using PlaystationSystem.Models;
 using PlaystationSystem.Services;
 
 namespace PlaystationSystem.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class AdminController : Controller
     {
         IAdminServices _adminServices;
-        public AdminController(IAdminServices adminServices)
+        private readonly UserManager<ApplicationUser> _userManager;
+
+
+        public AdminController(IAdminServices adminServices, UserManager<ApplicationUser> userManager)
         {
             _adminServices = adminServices;
-
+            _userManager = userManager;
         }
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var users = _adminServices.GetAllUsersAsync().Result;
+            var users = await _userManager.Users.ToListAsync();
             var shifts = _adminServices.GetAllShiftsAsync().Result;
             ViewBag.TotalUsers = users.Count;
             ViewBag.TotalShifts = shifts.Count;
@@ -27,30 +34,30 @@ namespace PlaystationSystem.Controllers
             return View();
         }
         [HttpPost]
-        public async Task<IActionResult> CreateUser(User user )
+        public async Task<IActionResult> CreateUser(ApplicationUser user )
         {
 
             if (ModelState.IsValid)
             {
-                await _adminServices.AddUserAsync(user);
+                await _userManager.CreateAsync(user);
                 return RedirectToAction("Index");
             }
             return View(user);
         }
         [HttpPost]
-        public async Task<IActionResult> DeleteUser(int id)
+        public async Task<IActionResult> DeleteUser(string id)
         {
-            var user = await _adminServices.GetUserByIdAsync(id);
+            var user = await _userManager.FindByIdAsync(id);
             if (user == null)
             {
                 return NotFound();
             }
-            await _adminServices.DeleteUserAsync(id);
+            await _userManager.DeleteAsync(user);
             return RedirectToAction("Index");
         }
         [HttpPost]
        
-        public async Task<IActionResult> EditUser(User user)
+        public async Task<IActionResult> EditUser(ApplicationUser user)
         {
             if (user==null)
             {
@@ -59,7 +66,7 @@ namespace PlaystationSystem.Controllers
             if (ModelState.IsValid)
             {
              
-         var User=   await _adminServices.UpdateUserAsync(user);
+         var User=   await _userManager.FindByIdAsync(user.Id);
                 return RedirectToAction("Index");
             }
 
@@ -68,9 +75,9 @@ namespace PlaystationSystem.Controllers
         }
         [HttpGet]
         
-        public async Task<IActionResult> EditUser(int id)
+        public async Task<IActionResult> EditUser(string id)
         {
-            var user = await _adminServices.GetUserByIdAsync(id);
+            var user = await _userManager.FindByIdAsync(id);
             if (user == null)
             {
                 return NotFound();
@@ -78,9 +85,9 @@ namespace PlaystationSystem.Controllers
             return View(user);
         }
         [HttpGet]
-        public async Task<IActionResult> GetDetailsForUser(int id)
+        public async Task<IActionResult> GetDetailsForUser(string id)
         {
-            var user =await _adminServices.GetUserByIdAsync(id);
+            var user =await _userManager.FindByIdAsync(id);       
             if (user == null)
             {
                 return NotFound();
