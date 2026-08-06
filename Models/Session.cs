@@ -46,7 +46,7 @@ namespace PlaystationSystem.Models
         public ICollection<SessionOrder> Orders { get; set; } = new List<SessionOrder>();
 
         public int UserId { get; set; }
-        public User User { get; set; } = null!;
+        public ApplicationUser User { get; set; } = null!;
 
     }
 }

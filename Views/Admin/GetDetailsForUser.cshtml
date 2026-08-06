@@ -1,4 +1,5 @@
-﻿@model User
+﻿@using PlaystationSystem.Models
+@model ApplicationUser
 
 @{
     ViewData["Title"] = "تفاصيل الموظف";
@@ -15,7 +16,7 @@
             <p class="text-muted small mb-0">عرض كافة البيانات الخاصة بالحساب والصلاحيات المسجلة</p>
         </div>
         <a asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4">
-            <i class="fa-solid fa-arrow-right me-1"><a href="admin/index"></a></i> رجوع للوحة التحكم
+            <i class="fa-solid fa-arrow-right me-1"></i> رجوع للوحة التحكم
         </a>
     </div>
 
@@ -29,9 +30,9 @@
                     <div class="mb-2">
                         <i class="fa-solid fa-circle-user fa-5x text-white-50"></i>
                     </div>
-                    <h4 class="fw-bold mb-0">@Model.Username</h4>
+                    <h4 class="fw-bold mb-0">@Model.FullName</h4>
                     <span class="badge bg-light text-primary mt-2 px-3 py-1 rounded-pill fw-normal">
-                        @Model.Role 
+                        @Model.UserName
                     </span>
                 </div>
 
@@ -42,13 +43,27 @@
                         <!-- User ID -->
                         <li class="list-group-item d-flex justify-content-between align-items-center py-3 bg-transparent">
                             <span class="text-muted"><i class="fa-solid fa-hashtag me-2"></i>معرف الموظف (ID)</span>
-                            <span class="fw-bold text-dark">#@Model.Id</span>
+                            <span class="fw-bold text-dark text-break fs-7 ms-2">@Model.Id</span>
+                        </li>
+
+                        <!-- Full Name -->
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-3 bg-transparent">
+                            <span class="text-muted"><i class="fa-solid fa-id-card me-2"></i>الاسم بالكامل</span>
+                            <span class="fw-semibold text-dark">@Model.FullName</span>
                         </li>
 
                         <!-- Username -->
                         <li class="list-group-item d-flex justify-content-between align-items-center py-3 bg-transparent">
                             <span class="text-muted"><i class="fa-solid fa-user me-2"></i>اسم المستخدم</span>
-                            <span class="fw-semibold text-dark">@Model.Username</span>
+                            <span class="fw-semibold text-dark">@Model.UserName</span>
+                        </li>
+
+                        <!-- Email -->
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-3 bg-transparent">
+                            <span class="text-muted"><i class="fa-solid fa-envelope me-2"></i>البريد الإلكتروني</span>
+                            <span class="fw-semibold text-dark">
+                                @(string.IsNullOrEmpty(Model.Email) ? "غير مسجل" : Model.Email)
+                            </span>
                         </li>
 
                         <!-- Phone Number -->
@@ -57,6 +72,12 @@
                             <span class="fw-semibold text-dark">
                                 @(string.IsNullOrEmpty(Model.PhoneNumber) ? "غير مسجل" : Model.PhoneNumber)
                             </span>
+                        </li>
+
+                        <!-- Created At -->
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-3 bg-transparent">
+                            <span class="text-muted"><i class="fa-solid fa-calendar-day me-2"></i>تاريخ الإنشاء</span>
+                            <span class="fw-semibold text-dark">@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</span>
                         </li>
 
                         <!-- Account Status -->
@@ -81,7 +102,7 @@
                     <!-- Action Buttons inside Card -->
                     <div class="d-flex gap-2 mt-4 pt-2 border-top">
                         <a asp-action="EditUser" asp-route-id="@Model.Id" class="btn btn-primary flex-grow-1 rounded-pill fw-bold">
-                            <i class="fa-solid fa-pen-to-square me-1"><a href="admin/edituser/@Model.Id"></a></i> تعديل البيانات
+                            <i class="fa-solid fa-pen-to-square me-1"></i> تعديل البيانات
                         </a>
                         <a asp-action="Index" class="btn btn-light border flex-grow-1 rounded-pill text-secondary">
                             إغلاق

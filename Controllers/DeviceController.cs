@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PlaystationSystem.Models;
 using PlaystationSystem.Services;
 using PlaystationSystem.ViewModel;
 
 namespace PlaystationSystem.Controllers
 {
+    [Authorize]
     public class DeviceController : Controller
     {
         IGenericService<Device> _deviceService;

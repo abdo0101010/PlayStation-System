@@ -6,7 +6,7 @@ namespace PlaystationSystem.Models
     {
         public int Id { get; set; }
 
-        public int UserId { get; set; }
+        public string UserId { get; set; }
 
         public DateTime StartTime { get; set; } = DateTime.Now;
         public DateTime? EndTime { get; set; }
@@ -23,7 +23,7 @@ namespace PlaystationSystem.Models
         [Column(TypeName = "decimal(18,2)")]
         public decimal? ShortageOrSurplus { get; set; } // العجز أو الزيادة
         [ForeignKey("UserId")]
-        public User User { get; set; } = null!;
+        public ApplicationUser User { get; set; } = null!;
         //// Scaffold-DbContext "Server=.\SQLEXPRESS;Database=PlaystationSystem;Trusted_Connection=True;"Microsoft.EntityFrameworkCore.SqlServer - OutputDir Models
     }
 }

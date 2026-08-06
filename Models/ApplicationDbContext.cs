@@ -1,21 +1,22 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace PlaystationSystem.Models
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
 
         }
        
-        public DbSet<User> Users { get; set; } = null!;
         public DbSet<Product> Products { get; set; } = null!;
         public DbSet<Session> Sessions { get; set; } = null!;
         public DbSet<SessionOrder> SessionOrders { get; set; } = null!;
         public DbSet<Shifts> Shifts { get; set; } = null!;
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
             foreach (var relationship in modelBuilder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()))
             {
                 relationship.DeleteBehavior = DeleteBehavior.Restrict;
@@ -33,7 +34,6 @@ namespace PlaystationSystem.Models
             modelBuilder.Entity<Product>()
                 .Property(p => p.PurchasePrice)
                 .HasPrecision(18, 2);
-            base.OnModelCreating(modelBuilder);
             
             // Configure relationships and constraints here if needed
         }

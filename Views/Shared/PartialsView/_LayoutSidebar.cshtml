@@ -1,4 +1,6 @@
-﻿<div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark shadow-sm border-start border-secondary min-vh-100" style="width: 260px;" dir="rtl">
+﻿@using System.Security.Claims
+
+<div class="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark shadow-sm border-start border-secondary min-vh-100" style="width: 260px;" dir="rtl">
 
     <!-- Header / Brand -->
     <a asp-controller="Dashboard" asp-action="Index" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-warning text-decoration-none gap-2 px-2">
@@ -8,13 +10,15 @@
 
     <hr class="text-secondary my-3">
 
-    <!-- Shift Info Widget (مصغر) -->
+    <!-- Shift Info Widget -->
     <div class="bg-secondary bg-opacity-25 rounded p-2 mb-3 border border-secondary text-center">
         <small class="text-muted d-block mb-1">الوردية الحالية</small>
         <span class="badge bg-success text-white px-2 py-1 mb-1">
             <i class="fa-solid fa-circle fa-beat me-1"></i> شغالة
         </span>
-        <div class="fw-bold text-light small">الكاشير: عبده</div>
+        <div class="fw-bold text-light small">
+            الكاشير: @(User.FindFirst("FullName")?.Value ?? User.Identity?.Name ?? "غير مسجل")
+        </div>
     </div>
 
     <!-- Navigation Links -->
@@ -60,17 +64,54 @@
                 <span>الورديات والتقارير</span>
             </a>
         </li>
+
+        <!-- قسم إدارة الحسابات والصلاحيات -->
+        <li class="border-top border-secondary pt-2 mt-1">
+            <small class="text-muted px-2 d-block mb-1 fw-bold" style="font-size: 11px;">إدارة الصلاحيات</small>
+        </li>
+
+        <li>
+            <a asp-controller="Admin" asp-action="Index" class="nav-link text-white d-flex align-items-center gap-2">
+                <i class="fa-solid fa-users-gear text-warning" style="width: 20px;"></i>
+                <span>إدارة الموظفين</span>
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Admin" asp-action="CreateUser" class="nav-link text-white d-flex align-items-center gap-2">
+                <i class="fa-solid fa-user-plus text-success" style="width: 20px;"></i>
+                <span>إضافة موظف (Register)</span>
+            </a>
+        </li>
+
+        <li>
+            <a asp-controller="Role" asp-action="CreateRole" class="nav-link text-white d-flex align-items-center gap-2">
+                <i class="fa-solid fa-shield-halved text-info" style="width: 20px;"></i>
+                <span>إضافة دور (Add Role)</span>
+            </a>
+        </li>
     </ul>
 
     <hr class="text-secondary">
 
-    <!-- User Profile & Shift Controls -->
+    <!-- User Profile & Controls -->
     <div class="dropdown">
         <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle gap-2 px-2" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="fa-solid fa-circle-user fa-2x text-warning"></i>
             <div>
-                <strong class="d-block small">أحمد الموظف</strong>
-                <small class="text-muted" style="font-size: 11px;">Admin</small>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    var fullName = User.FindFirst("FullName")?.Value ?? User.Identity.Name;
+                    var roleName = User.FindFirst(ClaimTypes.Role)?.Value ?? "موظف";
+
+                    <strong class="d-block small">@fullName</strong>
+                    <small class="text-muted" style="font-size: 11px;">@roleName</small>
+                }
+                else
+                {
+                    <strong class="d-block small">زائر</strong>
+                    <small class="text-muted" style="font-size: 11px;">غير مسجل</small>
+                }
             </div>
         </a>
         <ul class="dropdown-menu dropdown-menu-dark text-small shadow text-end" aria-labelledby="dropdownUser1">
@@ -79,12 +120,27 @@
                     <i class="fa-solid fa-lock"></i> تقفيل الوردية
                 </a>
             </li>
-            <li><hr class="dropdown-divider"></li>
-            <li>
-                <a class="dropdown-item text-danger d-flex align-items-center gap-2" asp-controller="Account" asp-action="Logout">
-                    <i class="fa-solid fa-right-from-bracket"></i> خروج
-                </a>
-            </li>
+
+            @if (User.Identity?.IsAuthenticated != true)
+            {
+                <li>
+                    <a class="dropdown-item text-info d-flex align-items-center gap-2" asp-controller="Account" asp-action="Login">
+                        <i class="fa-solid fa-right-to-bracket"></i> تسجيل الدخول (Sign In)
+                    </a>
+                </li>
+            }
+            else
+            {
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline w-100">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="dropdown-item text-danger d-flex align-items-center gap-2 w-100 border-0 bg-transparent">
+                            <i class="fa-solid fa-right-from-bracket"></i> خروج (Sign Out)
+                        </button>
+                    </form>
+                </li>
+            }
         </ul>
     </div>
 </div>
