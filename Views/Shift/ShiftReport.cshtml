@@ -1,0 +1,188 @@
+﻿@model PlaystationSystem.Models.Shifts
+
+@{
+    ViewData["Title"] = "تقرير إغلاق الوردية #" + Model.Id;
+    Layout = "_Layout";
+}
+
+<div class="container py-4" dir="rtl">
+
+    <!-- Action Bar (Print / Back) -->
+    <div class="d-flex justify-content-between align-items-center mb-4 d-print-none">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">
+                <i class="fa-solid fa-file-lines text-primary me-2"></i> تقرير إغلاق الوردية
+            </h3>
+            <span class="badge bg-secondary">رقم الوردية: #@Model.Id</span>
+        </div>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-outline-dark rounded-pill px-4">
+                <i class="fa-solid fa-print me-1"></i> طباعة التقرير
+            </button>
+            <a asp-controller="Home" asp-action="Index" class="btn btn-primary rounded-pill px-4">
+                العودة للرئيسية
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden print-card">
+
+                <!-- تقرير Header -->
+                <div class="card-header bg-dark text-white p-4 text-center">
+                    <h4 class="fw-bold mb-1">PlayStation Center Management</h4>
+                    <p class="text-white-50 mb-0">ملخص حساب الوردية وتسليم الخزينة</p>
+                </div>
+
+                <div class="card-body p-4">
+
+                    <!-- بيانات الوردية الأساسية -->
+                    <div class="row g-3 mb-4 text-center">
+                        <div class="col-sm-6 col-md-3">
+                            <div class="p-3 bg-light rounded-3 border">
+                                <small class="text-muted d-block">الموظف المسؤول</small>
+                                <span class="fw-bold text-dark">@(Model.User?.UserName ?? "كاشير")</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                            <div class="p-3 bg-light rounded-3 border">
+                                <small class="text-muted d-block">وقت الفتح</small>
+                                <span class="fw-bold text-dark">@Model.StartTime.ToString("hh:mm tt")</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                            <div class="p-3 bg-light rounded-3 border">
+                                <small class="text-muted d-block">وقت الإغلاق</small>
+                                <span class="fw-bold text-dark">@(Model.EndTime?.ToString("hh:mm tt") ?? "مفتوحة")</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                            <div class="p-3 bg-light rounded-3 border">
+                                <small class="text-muted d-block">مدة الوردية</small>
+                                <span class="fw-bold text-dark">
+                                    @if (Model.EndTime.HasValue)
+                                    {
+                                        var duration = Model.EndTime.Value - Model.StartTime;
+                                        @($"{duration.Hours} س و {duration.Minutes} د")
+                                    }
+                                    else
+                                    {
+                                        <span>-</span>
+                                    }
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- جدول تفاصيل العمليات المالية -->
+                    <div class="table-responsive mb-4">
+                        <table class="table table-bordered align-middle mb-0">
+                            <thead class="table-secondary text-center">
+                                <tr>
+                                    <th>البند / البيان</th>
+                                    <th style="width: 35%;">القيمة</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><i class="fa-solid fa-coins text-warning me-2"></i> عهدة البداية (الفكة الافتتاحية)</td>
+                                    <td class="text-end fw-bold">@Model.StartingCash.ToString("0.00") ج.م</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fa-solid fa-gamepad text-primary me-2"></i> إيرادات أجهزة البلايستيشن</td>
+                                    <td class="text-end text-success fw-bold">+ @Model.TotalGamingIncome.ToString("0.00") ج.م</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fa-solid fa-mug-hot text-info me-2"></i> مبيعات البوفيه والمشروبات</td>
+                                    <td class="text-end text-success fw-bold">+ @Model.TotalBuffetIncome.ToString("0.00") ج.م</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fa-solid fa-hand-holding-dollar text-success me-2"></i> تحصيل ديون نقدية سابقة</td>
+                                    <td class="text-end text-success fw-bold">+ @Model.TotalDebtCollected.ToString("0.00") ج.م</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fa-solid fa-arrow-trend-down text-danger me-2"></i> المصروفات النثرية المنصرفة</td>
+                                    <td class="text-end text-danger fw-bold">- @Model.TotalExpenses.ToString("0.00") ج.م</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- بطاقات مطابقة الخزينة والعجز والزيادة -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <div class="card border-0 bg-light p-3 rounded-3 text-center border">
+                                <small class="text-muted d-block mb-1">المبلغ الدفتري المتوقع</small>
+                                <h5 class="fw-bold text-primary mb-0">@Model.ExpectedCash.ToString("0.00") ج.م</h5>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-0 bg-light p-3 rounded-3 text-center border">
+                                <small class="text-muted d-block mb-1">المبلغ الفعلي بالدرج</small>
+                                <h5 class="fw-bold text-dark mb-0">@(Model.ActualCash?.ToString("0.00") ?? "0.00") ج.م</h5>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            @{
+                                var variance = Model.ShortageOrSurplus ?? 0;
+                                var cardBg = variance == 0 ? "bg-success bg-opacity-10 text-success border-success" :
+                                variance < 0 ? "bg-danger bg-opacity-10 text-danger border-danger" :
+                                "bg-warning bg-opacity-10 text-warning border-warning";
+                            }
+                            <div class="card border p-3 rounded-3 text-center @cardBg">
+                                <small class="d-block mb-1 fw-bold">
+                                    @(variance == 0 ? "حالة الخزينة: متطابق" : variance < 0 ? "يوجد عجز نقدية" : "توجد زيادة نقدية")
+                                </small>
+                                <h5 class="fw-bold mb-0">@variance.ToString("0.00") ج.م</h5>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ملاحظات الوردية -->
+                    @if (!string.IsNullOrWhiteSpace(Model.Notes))
+                    {
+                        <div class="alert alert-light border rounded-3 p-3 mb-4">
+                            <strong class="d-block mb-1 text-muted"><i class="fa-solid fa-clipboard text-secondary me-1"></i> ملاحظات الكاشير:</strong>
+                            <p class="mb-0 text-dark">@Model.Notes</p>
+                        </div>
+                    }
+
+                    <!-- توقيعات التسليم للطباعة -->
+                    <div class="row pt-4 mt-2 border-top text-center text-muted">
+                        <div class="col-6">
+                            <p class="mb-4">توقيع المستلم (الكاشير الجديد / الإدارة):</p>
+                            <span>..........................................</span>
+                        </div>
+                        <div class="col-6">
+                            <p class="mb-4">توقيع المسلّم (الكاشير الحالي):</p>
+                            <span>..........................................</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    @@media print {
+        body * {
+            visibility: hidden;
+        }
+        .print-card, .print-card * {
+            visibility: visible;
+        }
+        .print-card {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            border: none !important;
+            box-shadow: none !important;
+        }
+    }
+</style>

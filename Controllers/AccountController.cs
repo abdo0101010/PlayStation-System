@@ -84,7 +84,7 @@ namespace PlaystationSystem.Controllers
                     {
                         await _signInManager.SignInAsync(user, loginViewModel.RememberMe);
 
-                        return RedirectToAction("Index", "Home");
+                        return RedirectToAction("OpenShift", "Shifts");
                     }
                     else
                     {
