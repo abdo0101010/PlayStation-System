@@ -1,0 +1,84 @@
+﻿@model PlaystationSystem.ViewModel.CloseShiftViewModel
+
+@{
+    ViewData["Title"] = "تقفيل الوردية";
+    Layout = "_Layout";
+}
+
+<div class="container py-4" dir="rtl">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-6">
+
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="card-header bg-dark text-white p-3 text-center">
+                    <i class="fa-solid fa-lock fa-2x text-danger mb-2"></i>
+                    <h5 class="fw-bold mb-0">تقفيل الوردية وتسليم النقدية</h5>
+                    <small class="text-white-50">بدأت: @Model.StartTime.ToString("yyyy-MM-dd hh:mm tt")</small>
+                </div>
+
+                <div class="card-body p-4">
+                    <!-- ملخص الحساب الدفتري -->
+                    <ul class="list-group list-group-flush mb-4 rounded-3 border">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span class="text-muted"><i class="fa-solid fa-coins me-1"></i> عهدة البداية (الفكة):</span>
+                            <span class="fw-bold">@Model.StartingCash.ToString("0.00") ج.م</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span class="text-muted"><i class="fa-solid fa-gamepad text-info me-1"></i> إيراد أجهزة البلايستيشن:</span>
+                            <span class="fw-bold text-success">+@Model.TotalGamingIncome.ToString("N2") ج.م</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span class="text-muted"><i class="fa-solid fa-mug-hot text-warning me-1"></i> مبيعات البوفيه:</span>
+                            <span class="fw-bold text-success">+@Model.TotalBuffetIncome.ToString("N2") ج.م</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span class="text-muted"><i class="fa-solid fa-hand-holding-dollar text-primary me-1"></i> تحصيل ديون نقدية:</span>
+                            <span class="fw-bold text-success">+@Model.TotalDebtCollected.ToString("N2") ج.م</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span class="text-muted"><i class="fa-solid fa-arrow-trend-down text-danger me-1"></i> المصروفات النثرية:</span>
+                            <span class="fw-bold text-danger">-@Model.TotalExpenses.ToString("N2") ج.م</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between bg-light py-3 border-top">
+                            <span class="fw-bold fs-6">المبلغ المفترض تواجده بالدرج:</span>
+                            <span class="fw-bold text-primary fs-5">@Model.ExpectedCash.ToString("N2") ج.م</span>
+                        </li>
+                    </ul>
+
+                    <!-- إدخال النقدية الفعلية -->
+                    <form asp-action="CloseShift" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="ShiftId" />
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">النقدية الفعلية المستلمة (العد اليدوي) <span class="text-danger">*</span></label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-danger bg-opacity-10 text-danger border-danger">
+                                    <i class="fa-solid fa-cash-register"></i>
+                                </span>
+                                <input asp-for="ActualCash" type="number" step="0.5" class="form-control border-danger text-center fw-bold fs-4" placeholder="0.00" required autofocus />
+                                <span class="input-group-text bg-danger bg-opacity-10 text-danger border-danger fw-bold">ج.م</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">ملاحظات الإغلاق</label>
+                            <textarea asp-for="Notes" class="form-control" rows="2" placeholder="أي ملاحظات حول العجز أو التسليم..."></textarea>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger btn-lg rounded-pill fw-bold" onclick="return confirm('هل أنت متأكد من إنهاء الوردية وقفيل الحساب؟ لا يمكن التراجع بعد ذلك.');">
+                                <i class="fa-solid fa-check-double me-1"></i> إنهاء الوردية وترحيل الحساب
+                            </button>
+                            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary rounded-pill">
+                                إلغاء
+                            </a>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

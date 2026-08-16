@@ -1,0 +1,76 @@
+﻿@{
+    ViewData["Title"] = "تسجيل مصروف نثري";
+    Layout = "_Layout";
+}
+
+<div class="container py-5" dir="rtl">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+
+                <div class="card-header bg-danger text-white p-3 text-center">
+                    <i class="fa-solid fa-receipt fa-2x mb-2"></i>
+                    <h5 class="fw-bold mb-0">تسجيل مصروف نثري (خروج نقدية)</h5>
+                    <small class="text-white-50">خصم مباشر من درج الوردية الحالية</small>
+                </div>
+
+                <div class="card-body p-4">
+                    <form asp-action="AddExpense" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <!-- بند المصروف -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">بند / سبب الصرف <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-danger">
+                                    <i class="fa-solid fa-tag"></i>
+                                </span>
+                                <input type="text"
+                                       name="title"
+                                       class="form-control"
+                                       placeholder="مثال: شراء بن وسكر / صيانة دراعات / نظافة"
+                                       required
+                                       autofocus />
+                            </div>
+                        </div>
+
+                        <!-- المبلغ المصروف -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">المبلغ المصروف <span class="text-danger">*</span></label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-danger bg-opacity-10 text-danger border-danger">
+                                    <i class="fa-solid fa-money-bill-wave"></i>
+                                </span>
+                                <input type="number"
+                                       name="amount"
+                                       class="form-control border-danger text-center fw-bold fs-4 text-danger"
+                                       placeholder="0.00"
+                                       step="0.5"
+                                       min="0.5"
+                                       required />
+                                <span class="input-group-text bg-danger bg-opacity-10 text-danger border-danger fw-bold">ج.م</span>
+                            </div>
+                        </div>
+
+                        <!-- ملاحظات إضافية -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">ملاحظات / تفاصيل (إن وجدت)</label>
+                            <textarea name="notes" class="form-control" rows="2" placeholder="أي تفاصيل تخص الفاتورة أو المشتريات..."></textarea>
+                        </div>
+
+                        <!-- أزرار الإجراء -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger btn-lg rounded-pill fw-bold shadow-sm">
+                                <i class="fa-solid fa-minus-circle me-1"></i> خصم من الخزينة وحفظ
+                            </button>
+                            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary rounded-pill">
+                                إلغاء
+                            </a>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
