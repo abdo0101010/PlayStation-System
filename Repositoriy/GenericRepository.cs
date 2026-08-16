@@ -14,6 +14,7 @@ namespace PlaystationSystem.Repositoriy
         }
         public async Task AddAsync(T entity) {
            await  _context.AddAsync( entity );
+            _context.SaveChanges();
         }
         public async Task Update(T Entity)
         {
@@ -22,6 +23,7 @@ namespace PlaystationSystem.Repositoriy
                 return;
             }
             _context.Update(Entity);
+            await _context.SaveChangesAsync();
         }
         public async Task Delete(int id)
         {
@@ -31,6 +33,8 @@ namespace PlaystationSystem.Repositoriy
                 return;
             }
              _context.Remove(entity);
+            await _context.SaveChangesAsync();
+
         }
         public async Task<T?> GetByIdAsync(int id)
         {
@@ -71,6 +75,7 @@ namespace PlaystationSystem.Repositoriy
                 throw new ArgumentNullException(nameof(entity));
             }
             entities.Remove(entity);
+            await _context.SaveChangesAsync();
         }
         
 

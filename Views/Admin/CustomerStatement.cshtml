@@ -1,0 +1,105 @@
+﻿@model PlaystationSystem.ViewModel.CustomerStatementViewModel
+
+@{
+    ViewData["Title"] = "كشف حساب عميل - " + Model.CustomerName;
+    Layout = "_Layout";
+}
+
+<div class="container-fluid py-4" dir="rtl">
+    <!-- Action Bar (Print / Back) -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">
+                <i class="fa-solid fa-file-invoice-dollar text-primary me-2"></i> كشف حساب تفصيلي
+            </h3>
+            <p class="text-muted small mb-0">تقرير المعاملات والمديونيات للعميل</p>
+        </div>
+        <div class="d-flex gap-2">
+
+            <button onclick="window.print()" class="btn btn-outline-dark rounded-pill px-4">
+                <i class="fa-solid fa-print me-1"></i> طباعة كشف الحساب
+            </button>
+            <a asp-action="GetAllCustomers" class="btn btn-secondary rounded-pill px-4">
+                رجوع للسجل
+            </a>
+        </div>
+    </div>
+
+    <!-- Customer Info Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-light">
+                <small class="text-muted d-block">اسم العميل</small>
+                <h5 class="fw-bold text-dark mb-0">@Model.CustomerName</h5>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-light">
+                <small class="text-muted d-block">رقم الهاتف</small>
+                <h5 class="fw-bold text-dark mb-0">@(Model.PhoneNumber ?? "غير مسجل")</h5>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 @(Model.CurrentDebt > 0 ? "bg-danger bg-opacity-10 border-danger" : "bg-success bg-opacity-10")">
+                <small class="text-muted d-block">إجمالي المديونية الحالية</small>
+                <h5 class="fw-bold @(Model.CurrentDebt > 0 ? "text-danger" : "text-success") mb-0">
+                    @Model.CurrentDebt.ToString("N2") ج.م
+                </h5>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-warning bg-opacity-10">
+                <small class="text-muted d-block">نقاط المكافأة</small>
+                <h5 class="fw-bold text-warning mb-0">@Model.Points نقطة</h5>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transactions Table -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-header bg-dark text-white py-3">
+            <h6 class="mb-0 fw-bold"><i class="fa-solid fa-clock-rotate-left me-2"></i> سجل العمليات السابقة</h6>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 text-center">
+                    <thead class="table-secondary text-nowrap">
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>نوع المعاملة</th>
+                            <th>البيان والتفاصيل</th>
+                            <th>الإجمالي</th>
+                            <th>المدفوع</th>
+                            <th>الآجل / المتبقي</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Transactions != null && Model.Transactions.Any())
+                        {
+                            foreach (var item in Model.Transactions)
+                            {
+                                <tr>
+                                    <td>@item.Date.ToString("yyyy-MM-dd hh:mm tt")</td>
+                                    <td><span class="badge bg-info text-dark">@item.TransactionType</span></td>
+                                    <td class="text-start">@item.Details</td>
+                                    <td class="fw-bold">@item.TotalAmount.ToString("N2") ج.م</td>
+                                    <td class="text-success fw-bold">@item.PaidAmount.ToString("N2") ج.م</td>
+                                    <td class="text-danger fw-bold">@item.RemainingDebt.ToString("N2") ج.م</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="py-5 text-muted">
+                                    <i class="fa-solid fa-receipt fa-2x mb-2 d-block text-secondary"></i>
+                                    لا توجد معاملات مسجلة سابقة لهذا العميل بعد.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
