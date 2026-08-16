@@ -1,0 +1,86 @@
+﻿@model PlaystationSystem.Models.Customer
+
+@{
+    ViewData["Title"] = "إضافة عميل جديد";
+    Layout = "_Layout";
+}
+
+<div class="container py-4" dir="rtl">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+
+            <!-- Card Wrapper -->
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-dark text-white p-3 rounded-top-4 d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-user-plus text-warning fa-lg"></i>
+                    <h5 class="mb-0 fw-bold">إضافة عميل جديد</h5>
+                </div>
+
+                <div class="card-body p-4">
+                    <form asp-action="CreateCustomer" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small mb-3"></div>
+
+                        <!-- اسم العميل -->
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label fw-bold">اسم العميل <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-user text-muted"></i></span>
+                                <input asp-for="Name" class="form-control" placeholder="أدخل اسم العميل بالكامل" autofocus />
+                            </div>
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+
+                        <!-- رقم الهاتف -->
+                        <div class="mb-3">
+                            <label asp-for="Phone" class="form-label fw-bold">رقم الهاتف</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-phone text-muted"></i></span>
+                                <input asp-for="Phone" class="form-control text-end" placeholder="مثال: 010xxxxxxxx" />
+                            </div>
+                            <span asp-validation-for="Phone" class="text-danger small"></span>
+                        </div>
+
+                        <!-- المديونية الافتتاحية -->
+                        <div class="mb-3">
+                            <label asp-for="Debt" class="form-label fw-bold">مديونية افتتاحية (إن وجدت)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-money-bill-wave text-muted"></i></span>
+                                <input asp-for="Debt" type="number" step="0.5" class="form-control text-end" value="0" />
+                                <span class="input-group-text">ج.م</span>
+                            </div>
+                            <span asp-validation-for="Debt" class="text-danger small"></span>
+                        </div>
+
+                        <!-- نقاط الخصم / الرصيد -->
+                        <div class="mb-4">
+                            <label asp-for="TotalPoints" class="form-label fw-bold">نقاط المكافأة الابتدائية</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-star text-muted"></i></span>
+                                <input asp-for="TotalPoints" type="number" class="form-control text-end" value="0" />
+                                <span class="input-group-text">نقطة</span>
+                            </div>
+                            <span asp-validation-for="TotalPoints" class="text-danger small"></span>
+                        </div>
+
+                        <!-- الأزرار -->
+                        <div class="d-flex gap-2 justify-content-end pt-2">
+                            <a asp-action="GetAllCustomers" class="btn btn-outline-secondary rounded-pill px-4">
+                                إلغاء
+                            </a>
+                            <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">
+                                <i class="fa-solid fa-floppy-disk me-1"></i> حفظ العميل
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
