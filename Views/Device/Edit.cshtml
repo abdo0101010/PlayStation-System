@@ -31,6 +31,9 @@
                         <!-- Primary Key (Hidden) -->
                         <input type="hidden" asp-for="Id" />
 
+                        <!-- الحفاظ على حالة الجهاز كما هي (متاح/مشغول) دون تعديل يدوي -->
+                        <input type="hidden" asp-for="IsActive" />
+
                         <!-- Device Name -->
                         <div class="mb-3">
                             <label asp-for="Name" class="form-label fw-bold">اسم الجهاز / الشاشة</label>
@@ -69,7 +72,7 @@
                         </div>
 
                         <!-- Multi Hourly Rate -->
-                        <div class="mb-3">
+                        <div class="mb-4">
                             <label asp-for="HourPriceMulti" class="form-label fw-bold">سعر الساعة (Multi)</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light"><i class="fa-solid fa-user-group text-muted"></i></span>
@@ -77,12 +80,6 @@
                                 <span class="input-group-text bg-light">ج.م</span>
                             </div>
                             <span asp-validation-for="HourPriceMulti" class="text-danger small"></span>
-                        </div>
-
-                        <!-- IsOccupied Switch -->
-                        <div class="mb-4 form-check form-switch dir-ltr d-flex align-items-center justify-content-between p-3 bg-light rounded-2 border">
-                            <label class="form-check-label fw-bold mb-0 me-3" for="isOccupiedSwitch">حالة الجهاز (مشغول حالياً)</label>
-                            <input class="form-check-input ms-0" type="checkbox" asp-for="IsOccupied" id="isOccupiedSwitch" style="width: 2.5em; height: 1.3em;">
                         </div>
 
                         <!-- Submit Button -->

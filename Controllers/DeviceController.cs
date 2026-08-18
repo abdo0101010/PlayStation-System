@@ -7,6 +7,7 @@ using PlaystationSystem.ViewModel;
 namespace PlaystationSystem.Controllers
 {
     [Authorize]
+    [Route("[controller]/[action]")]
     public class DeviceController : Controller
     {
         IGenericService<Device> _deviceService;
@@ -19,8 +20,8 @@ namespace PlaystationSystem.Controllers
         {
             var devices = await _deviceService.GetAllAsync();
             ViewBag.DevicesCount = devices.Count();
-            ViewBag.DevicesActive = devices.Count(d => !d.IsOccupied);
-            ViewBag.DevicesInactive = devices.Count(d => d.IsOccupied);
+            ViewBag.DevicesActive = devices.Count(d => d.IsActive);
+            ViewBag.DevicesInactive = devices.Count(d => !d.IsActive);
 
             return View(devices);
         }
@@ -35,13 +36,12 @@ namespace PlaystationSystem.Controllers
             if (ModelState.IsValid)
             {
                 await _deviceService.AddAsync(device);
-                await _deviceService.SaveChangesAsync();
                 return RedirectToAction("Index");
             }
             return View(device);
         }
         [HttpGet]
-        public async Task<IActionResult> Edit(int id)
+        public async Task<IActionResult> Edit(string id)
         {
             var device = await _deviceService.GetByIdAsync(id);
             if (device == null)
@@ -55,14 +55,13 @@ namespace PlaystationSystem.Controllers
         {
             if (ModelState.IsValid)
             {
-                _deviceService.Update(device);
-                await _deviceService.SaveChangesAsync();
+              await  _deviceService.Update(device);
                 return RedirectToAction("Index");
             }
             return View(device);
         }
         [HttpPost]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(string id)
         {
             var device = await _deviceService.GetByIdAsync(id);
             if (device == null)
@@ -70,7 +69,7 @@ namespace PlaystationSystem.Controllers
                 return NotFound();
             }
             await _deviceService.Delete(device);
-            await _deviceService.SaveChangesAsync();
+           
             return RedirectToAction("Index");
         }
         public async Task<IActionResult> GetPricing()
@@ -86,7 +85,7 @@ namespace PlaystationSystem.Controllers
                     HourPriceSingle = device.HourPriceSingle,
                     HourPriceMulti = device.HourPriceMulti
                     ,Type = device.Type
-                    ,IsOccupied = device.IsOccupied
+                    ,IsOccupied = device.IsActive
                 };
                 pricingList.Add(pricing);
             }
@@ -97,6 +96,20 @@ namespace PlaystationSystem.Controllers
                 return NotFound();
             }
             return View(pricingList);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleStatus(string id)
+        {
+            var device = await _deviceService.GetByIdAsync(id);
+            if (device == null) return NotFound();
+
+            // عكس الحالة
+            device.IsActive = !device.IsActive;
+            await _deviceService.Update(device);
+
+            TempData["SuccessMessage"] = $"تم تغيير حالة {device.Name} إلى {(device.IsActive ? "متاح" : "مشغول/معطل")} بنجاح.";
+            return RedirectToAction(nameof(Index));
         }
     }
 }

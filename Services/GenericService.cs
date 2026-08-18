@@ -12,7 +12,7 @@ namespace PlaystationSystem.Services
             _repository = repository;
         }
 
-        public async Task<TEntity?> GetByIdAsync(int id)
+        public async Task<TEntity?> GetByIdAsync(string id)
         {
             return await _repository.GetByIdAsync(id);
         }
@@ -43,7 +43,7 @@ namespace PlaystationSystem.Services
             return _repository.SaveChangesAsync();
 
         }
-        public async Task DeleteById(int id)
+        public async Task DeleteById(string id)
         {
             await _repository.DeleteById(id);
         }

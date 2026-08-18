@@ -42,7 +42,7 @@ namespace PlaystationSystem.Repositoriy
             return await _context.Sessions.FindAsync(id);
         }
 
-        public async Task<Session?> GetSessionByIdAsync(int id, bool includeOrders)
+        public async Task<Session?> GetSessionByIdAsync(string id, bool includeOrders)
         {
             if (includeOrders)
             {

@@ -7,6 +7,7 @@ using PlaystationSystem.ViewModel;
 namespace PlaystationSystem.Controllers
 {
     [Authorize]
+    [Route("[controller]/[action]")]
     public class DrinkController: Controller
     {
         IGenericService<Product> _productService;
@@ -63,7 +64,7 @@ namespace PlaystationSystem.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Edit(int id)
+        public async Task<IActionResult> Edit(string id)
         {
             var product = await _productService .GetByIdAsync(id);
             if (product == null) return NotFound();
@@ -82,7 +83,7 @@ namespace PlaystationSystem.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, DrinksInventoryViewModel model)
+        public async Task<IActionResult> Edit(string id, DrinksInventoryViewModel model)
         {
             if (id != model.Id) return NotFound();
 
@@ -106,7 +107,7 @@ namespace PlaystationSystem.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(string id)
         {
             var product = await _productService.GetByIdAsync(id);
             if (product == null) return NotFound();

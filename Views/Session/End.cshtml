@@ -1,0 +1,242 @@
+﻿@model PlaystationSystem.ViewModel.EndSessionViewModel
+
+@{
+    ViewData["Title"] = "إنهاء الجلسة والحساب";
+}
+
+<div class="container py-4" dir="rtl">
+
+    <!-- رأس الصفحة -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">
+                <i class="fa-solid fa-receipt text-danger me-2"></i>إنهاء الجلسة وحساب الفاتورة
+            </h3>
+            <p class="text-muted small mb-0">مراجعة وقت اللعب وإضافة طلبات البوفيه والمسليات قبل التحصيل</p>
+        </div>
+        <a asp-controller="Session" asp-action="ActiveSessions" class="btn btn-outline-secondary rounded-pill px-3">
+            <i class="fa-solid fa-arrow-right me-1"></i> العودة للجلسات النشطة
+        </a>
+    </div>
+
+    <form asp-action="ConfirmEnd" method="post" id="endSessionForm">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="SessionId" />
+
+        <div class="row g-4">
+
+            <!-- العمود الأيمن: تفاصيل الوقت والجهاز -->
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-header bg-dark text-white py-3 px-4 rounded-top-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="fw-bold mb-0">
+                                <i class="fa-solid fa-tv text-warning me-2"></i>@Model.DeviceName
+                            </h5>
+                            <span class="badge @(Model.Mode == "Multi" ? "bg-warning text-dark" : "bg-info") rounded-pill px-3 py-1">
+                                @(Model.Mode == "Multi" ? "زوجي Multi" : "فردي Single")
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="card-body p-4">
+                        <ul class="list-group list-group-flush mb-4">
+                            <li class="list-group-item d-flex justify-content-between px-0">
+                                <span class="text-muted"><i class="fa-solid fa-user me-2"></i>العميل:</span>
+                                <strong class="text-dark">@Model.CustomerName</strong>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between px-0">
+                                <span class="text-muted"><i class="fa-solid fa-tag me-2"></i>سعر الساعة:</span>
+                                <strong class="text-primary">@Model.HourlyRate.ToString("0.00") ج.م</strong>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between px-0">
+                                <span class="text-muted"><i class="fa-solid fa-clock me-2"></i>وقت البدء:</span>
+                                <span>@Model.StartTime.ToString("hh:mm tt")</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between px-0">
+                                <span class="text-muted"><i class="fa-solid fa-flag-checkered me-2"></i>وقت الانتهاء:</span>
+                                <span>@Model.EndTime.ToString("hh:mm tt")</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between px-0 bg-light p-3 rounded-3 mt-2">
+                                <span class="fw-bold text-dark"><i class="fa-solid fa-hourglass-half text-danger me-2"></i>المدة المستغرقة:</span>
+                                <strong class="text-danger">@((int)Model.Duration.TotalHours) ساعة و @Model.Duration.Minutes دقيقة</strong>
+                            </li>
+                        </ul>
+
+                        <div class="p-3 bg-primary-subtle rounded-3 border border-primary-subtle">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-primary fw-semibold">حساب تكلفة الوقت:</span>
+                                <strong class="fs-4 text-primary" id="deviceCostDisplay">@Model.DeviceCost.ToString("0.00") ج.م</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- العمود الأيسر: طلبات البوفيه وإجمالي الفاتورة -->
+            <div class="col-lg-7">
+
+                <!-- كارت البوفيه والمنتجات -->
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-header bg-white py-3 px-4 border-bottom d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0 text-dark">
+                            <i class="fa-solid fa-mug-hot text-danger me-2"></i>طلبات البوفيه والمسليات
+                        </h5>
+                        <small class="text-muted">اختر الكميات المطلوبة</small>
+                    </div>
+
+                    <div class="card-body p-0">
+                        @if (Model.AvailableProducts == null || !Model.AvailableProducts.Any())
+                        {
+                            <div class="text-center py-4 text-muted">
+                                <i class="fa-solid fa-box-open fa-2x mb-2"></i>
+                                <p class="small mb-0">لا توجد أصناف متاحة في المخزن حالياً</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="table-responsive" style="max-height: 280px; overflow-y: auto;">
+                                <table class="table table-hover align-middle mb-0 text-center">
+                                    <thead class="table-light small text-muted text-uppercase">
+                                        <tr>
+                                            <th class="text-start pe-3">الصنف</th>
+                                            <th>السعر</th>
+                                            <th>المخزون</th>
+                                            <th style="width: 130px;">الكمية</th>
+                                            <th>الإجمالي</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (int i = 0; i < Model.AvailableProducts.Count; i++)
+                                        {
+                                            var prod = Model.AvailableProducts[i];
+                                            <tr>
+                                                <td class="text-start pe-3 fw-bold text-dark">
+                                                    @prod.Name
+                                                    <input type="hidden" name="SelectedOrders[@i].ProductId" value="@prod.ProductId" />
+                                                </td>
+                                                <td>@prod.Price.ToString("0.00") ج.م</td>
+                                                <td>
+                                                    <span class="badge bg-secondary-subtle text-secondary px-2 py-1">@prod.StockQuantity</span>
+                                                </td>
+                                                <td>
+                                                    <input type="number"
+                                                           name="SelectedOrders[@i].Quantity"
+                                                           class="form-control form-control-sm text-center prod-qty fw-bold"
+                                                           data-price="@prod.Price"
+                                                           value="0"
+                                                           min="0"
+                                                           max="@prod.StockQuantity"
+                                                           oninput="updateBillCalculations()" />
+                                                </td>
+                                                <td class="fw-bold text-success item-row-total">0.00 ج.م</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- كارت الدفع والإجمالي النهائي -->
+                <div class="card border-0 shadow-sm rounded-4 bg-dark text-white p-4">
+                    <div class="row g-4 align-items-center">
+
+                        <!-- ملخص الحساب -->
+                        <div class="col-md-6 border-end border-secondary pe-md-4">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-white-50">إجمالي اللعب:</span>
+                                <strong class="text-white">@Model.DeviceCost.ToString("0.00") ج.م</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-white-50">إجمالي البوفيه:</span>
+                                <strong class="text-warning" id="buffetTotalDisplay">0.00 ج.م</strong>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="text-white-50">خصم إضافي:</span>
+                                <div class="input-group input-group-sm w-50">
+                                    <input type="number"
+                                           asp-for="DiscountAmount"
+                                           id="discountInput"
+                                           class="form-control text-center fw-bold"
+                                           value="0"
+                                           min="0"
+                                           step="0.5"
+                                           oninput="updateBillCalculations()" />
+                                    <span class="input-group-text bg-secondary text-white border-0">ج.م</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- التحصيل والزر -->
+                        <div class="col-md-6 text-center ps-md-4">
+                            <span class="text-white-50 small d-block mb-1">المبلغ الإجمالي المطلوب تحصيله</span>
+                            <h2 class="display-6 fw-bold text-success mb-3" id="finalTotalDisplay">@Model.DeviceCost.ToString("0.00") ج.م</h2>
+
+                            <button type="submit" class="btn btn-success btn-lg w-100 rounded-pill fw-bold shadow">
+                                <i class="fa-solid fa-check-double me-1"></i> تحصيل وإغلاق الجلسة
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </form>
+
+</div>
+@section Scripts {
+    <script>
+        function updateBillCalculations() {
+            // قراءة تكلفة الجهاز مع ضمان تحويل الفاصلة العربية لنقطة إن وجدت
+            const baseDeviceCost = parseFloat('@Model.DeviceCost.ToString(System.Globalization.CultureInfo.InvariantCulture)') || 0;
+            let totalBuffet = 0;
+
+            // حساب أسعار كل صنف في البوفيه
+            document.querySelectorAll('.prod-qty').forEach(function(input) {
+                let qty = parseInt(input.value) || 0;
+                const max = parseInt(input.getAttribute('max')) || 0;
+
+                // منع تجاوز الكمية المتاحة في المخزن
+                if (max > 0 && qty > max) {
+                    qty = max;
+                    input.value = max;
+                }
+                if (qty < 0) {
+                    qty = 0;
+                    input.value = 0;
+                }
+
+                // قراءة السعر واستبدال الفاصلة بنقطة لو وجدت
+                const rawPrice = (input.getAttribute('data-price') || '0').replace(',', '.');
+                const unitPrice = parseFloat(rawPrice) || 0;
+                const rowTotal = qty * unitPrice;
+
+                // تحديث إجمالي الصف
+                const rowTotalElem = input.closest('tr').querySelector('.item-row-total');
+                if (rowTotalElem) {
+                    rowTotalElem.innerText = rowTotal.toFixed(2) + " ج.م";
+                }
+
+                totalBuffet += rowTotal;
+            });
+
+            // قراءة الخصم وحساب الإجمالي الصافي
+            const rawDiscount = (document.getElementById('discountInput').value || '0').replace(',', '.');
+            const discount = parseFloat(rawDiscount) || 0;
+
+            const totalNet = Math.max(0, (baseDeviceCost + totalBuffet) - discount);
+
+            // تحديث واجهة المستخدم
+            document.getElementById('buffetTotalDisplay').innerText = totalBuffet.toFixed(2) + " ج.م";
+            document.getElementById('finalTotalDisplay').innerText = totalNet.toFixed(2) + " ج.م";
+        }
+
+        // تشغيل الحساب تلقائياً عند فتح الصفحة
+        document.addEventListener("DOMContentLoaded", updateBillCalculations);
+    </script>
+}
+}

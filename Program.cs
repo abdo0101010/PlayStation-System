@@ -10,6 +10,7 @@ namespace PlaystationSystem
     {
         public static void Main(string[] args)
         {
+
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
@@ -21,8 +22,11 @@ namespace PlaystationSystem
             builder.Services.AddScoped<IAdminServices, AdminServices>();
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             builder.Services.AddScoped(typeof(IGenericService<>), typeof(GenericService<>));
+            builder.Services.AddScoped<IShiftRepositiory, ShiftRepositiory>();
+            builder.Services.AddScoped<IShiftServices, ShiftServices>();
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();  
+
             builder.Services.ConfigureApplicationCookie(options =>
             {
                 options.LoginPath = "/Account/Login"; // Set the login path
@@ -49,6 +53,7 @@ namespace PlaystationSystem
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
+
 
             app.Run();
         }

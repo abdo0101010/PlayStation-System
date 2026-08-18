@@ -36,7 +36,7 @@ namespace PlaystationSystem.Repositoriy
             await _context.SaveChangesAsync();
 
         }
-        public async Task<T?> GetByIdAsync(int id)
+        public async Task<T?> GetByIdAsync(string id)
         {
             return await entities.FindAsync(id);
         }
@@ -67,7 +67,7 @@ namespace PlaystationSystem.Repositoriy
             }
          entities.Remove(entity);
         }  
-        public async Task DeleteById(int id)
+        public async Task DeleteById(string id)
         {
             var entity = await entities.FindAsync(id);
             if (entity == null)

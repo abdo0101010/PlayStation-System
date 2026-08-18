@@ -1,0 +1,176 @@
+﻿@model IEnumerable<PlaystationSystem.ViewModel.ActiveSessionViewModel>
+
+@{
+    ViewData["Title"] = "الجلسات المفتوحة والنشطة";
+}
+
+<div class="container-fluid py-3" dir="rtl">
+
+    <!-- Top Bar -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">
+                <i class="fa-solid fa-gamepad text-success me-2"></i>الجلسات المفتوحة حالياً
+            </h3>
+            <p class="text-muted small mb-0">مراقبة حية للشاشات التي تعمل الآن مع عداد الوقت والتكلفة اللحظية</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Start" class="btn btn-success rounded-pill px-4 shadow-sm fw-semibold">
+                <i class="fa-solid fa-play me-1"></i> تشغيل جهاز جديد
+            </a>
+            <a asp-controller="Dashboard" asp-action="Index" class="btn btn-outline-secondary rounded-pill px-3">
+                <i class="fa-solid fa-arrow-right me-1"></i> العودة للرئيسية
+            </a>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="row justify-content-center py-5">
+            <div class="col-md-6 text-center">
+                <div class="card border-0 shadow-sm rounded-4 p-5 bg-light">
+                    <i class="fa-solid fa-gamepad fa-4x text-muted mb-3"></i>
+                    <h4 class="text-secondary fw-bold">لا توجد أجهزة قيد التشغيل حالياً</h4>
+                    <p class="text-muted small">جميع الشاشات شاغرة ومتاحة للاستخدام</p>
+                    <div class="mt-3">
+                        <a asp-action="Start" class="btn btn-primary rounded-pill px-4">بدء جلسة جديدة</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row g-3">
+            @foreach (var session in Model)
+            {
+                var activePrice = session.Mode == "Multi" ? session.HourPriceMulti : session.HourPriceSingle;
+
+                <div class="col-md-6 col-lg-4 col-xl-3">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden d-flex flex-column justify-content-between session-card"
+                         data-start="@session.StartTime.ToString("yyyy-MM-ddTHH:mm:ss")"
+                         data-price="@activePrice"
+                         data-type="@session.SessionType"
+                         data-target="@session.TargetMinutes">
+
+                        <!-- Card Header -->
+                        <div class="card-header bg-danger text-white py-3 px-3 d-flex justify-content-between align-items-center border-0">
+                            <div>
+                                <h5 class="fw-bold mb-0">
+                                    <i class="fa-solid fa-tv me-1"></i> @session.DeviceName
+                                </h5>
+                                <span class="badge bg-white text-dark small mt-1">@session.DeviceType</span>
+                            </div>
+                            <span class="badge bg-white text-danger fw-bold rounded-pill px-3 py-1 shadow-sm pulse-badge">
+                                <i class="fa-solid fa-circle me-1" style="font-size: 8px;"></i> مباشر
+                            </span>
+                        </div>
+
+                        <!-- Card Body -->
+                        <div class="card-body p-3">
+                            <!-- Customer & Mode Info -->
+                            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                                <span class="text-muted small"><i class="fa-solid fa-user me-1"></i>العميل:</span>
+                                <strong class="text-dark">@session.CustomerName</strong>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                                <span class="text-muted small"><i class="fa-solid fa-sliders me-1"></i>النظام:</span>
+                                <span class="badge @(session.Mode == "Multi" ? "bg-warning text-dark" : "bg-info") rounded-pill px-3 py-1">
+                                    @(session.Mode == "Multi" ? "زوجي Multi" : "فردي Single")
+                                </span>
+                            </div>
+
+                            <!-- Live Stopwatch Box -->
+                            <div class="bg-light rounded-3 p-3 text-center mb-3 border">
+                                <span class="text-muted small d-block mb-1">الوقت المنقضي</span>
+                                <h2 class="fw-bold text-danger mb-1 live-timer font-monospace" dir="ltr">00:00:00</h2>
+                                <small class="text-muted">وقت البدء: @session.StartTime.ToString("hh:mm tt")</small>
+                            </div>
+
+                            <!-- Cost Calculation -->
+                            <div class="d-flex justify-content-between align-items-center bg-success-subtle p-2 rounded-3 border border-success-subtle mb-2">
+                                <span class="text-success small fw-semibold">تكلفة الوقت الحالية:</span>
+                                <strong class="text-success fs-5 live-cost" dir="ltr">0.00 ج.م</strong>
+                            </div>
+                        </div>
+
+                        <!-- Card Footer & Actions -->
+                        <div class="card-footer bg-white border-0 p-3 pt-0">
+                            <div class="d-grid gap-2">
+                                <a asp-action="End" asp-route-id="@session.SessionId" class="btn btn-danger rounded-pill fw-bold shadow-sm">
+                                    <i class="fa-solid fa-receipt me-1"></i> إنهاء وحساب الفاتورة
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+</div>
+
+@section Scripts {
+    <script>
+        function updateTimers() {
+            const cards = document.querySelectorAll('.session-card');
+            const now = new Date();
+
+            cards.forEach(card => {
+                const startStr = card.getAttribute('data-start');
+                const hourRate = parseFloat(card.getAttribute('data-price')) || 0;
+                const startTime = new Date(startStr);
+
+                const diffMs = Math.max(0, now - startTime);
+                const totalSec = Math.floor(diffMs / 1000);
+
+                const hrs = String(Math.floor(totalSec / 3600)).padStart(2, '0');
+                const mins = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
+                const secs = String(totalSec % 60).padStart(2, '0');
+
+                const timerElem = card.querySelector('.live-timer');
+                if (timerElem) {
+                    timerElem.innerText = `${hrs}:${mins}:${secs}`;
+                }
+
+                // حساب التكلفة بالدقائق
+                const totalMinutes = diffMs / (1000 * 60);
+                const currentCost = (totalMinutes / 60) * hourRate;
+
+                const costElem = card.querySelector('.live-cost');
+                if (costElem) {
+                    costElem.innerText = currentCost.toFixed(2) + " ج.م";
+                }
+            });
+        }
+
+        // تشغيل العداد وتحديثه كل ثانية
+        setInterval(updateTimers, 1000);
+        updateTimers();
+    </script>
+
+    <style>
+        .pulse-badge {
+            animation: pulse 1.5s infinite;
+        }
+
+        @@keyframes pulse {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.7;
+                transform: scale(1.05);
+            }
+
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    </style>
+}

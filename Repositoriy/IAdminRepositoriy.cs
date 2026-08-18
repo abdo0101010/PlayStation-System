@@ -10,7 +10,7 @@ namespace PlaystationSystem.Repositoriy
         public Task<Shifts> AddShiftAsync(Shifts shift);
         public Task<Session?> GetSessionByIdAsync(int id);
         public Task<List<Session>> GetAllSessionsAsync();
-        public Task<Session?> GetSessionByIdAsync(int id, bool includeOrders);
+        public Task<Session?> GetSessionByIdAsync(string id, bool includeOrders);
 
 
     }

@@ -4,7 +4,7 @@ namespace PlaystationSystem.ViewModel
 {
     public class DrinksInventoryViewModel
     {
-        public int Id { get; set; }
+        public string Id { get; set; } = Guid.NewGuid().ToString();
 
         [Required(ErrorMessage = "اسم المنتج مطلوب")]
         [Display(Name = "اسم المنتج / المشروب")]

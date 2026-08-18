@@ -1,0 +1,203 @@
+﻿@model PlaystationSystem.ViewModel.StartSessionViewModel
+
+@{
+    ViewData["Title"] = "بدء تشغيل جلسة";
+    Layout = "_Layout";
+}
+
+<div class="container py-5" dir="rtl">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-5">
+
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+
+                <div class="card-header bg-dark text-white p-3 text-center">
+                    <i class="fa-solid fa-gamepad fa-2x text-warning mb-2"></i>
+                    <h5 class="fw-bold mb-0">بدء جلسة لعب جديدة</h5>
+                    <small class="text-white-50">تجهيز وتشغيل الجهاز المختار</small>
+                </div>
+
+                <div class="card-body p-4">
+                    <form asp-controller="Session" asp-action="Start" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <!-- اختيار الجهاز -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">الجهاز المطلوب تشغيله <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-primary"><i class="fa-solid fa-tv"></i></span>
+                                <select asp-for="DeviceId" class="form-select form-select-lg fw-semibold" required>
+                                    <option value="">-- اختر الجهاز --</option>
+                                    @foreach (var device in Model.AvailableDevices)
+                                    {
+                                        <option value="@device.Id" selected="@(device.Id == Model.DeviceId ? "selected" : null)">
+                                            @device.Name (@device.Type)
+                                        </option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- اختيار العميل + زر الإضافة السريعة -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="form-label fw-bold mb-0">العميل (اختياري)</label>
+                                <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-2 py-0" data-bs-toggle="modal" data-bs-target="#quickCustomerModal">
+                                    <i class="fa-solid fa-user-plus me-1"></i> عميل جديد
+                                </button>
+                            </div>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-success"><i class="fa-solid fa-user"></i></span>
+                                <select asp-for="CustomerId" id="customerSelect" class="form-select">
+                                    <option value="">زبون عابر (بدون حساب)</option>
+                                    @foreach (var cust in Model.Customers)
+                                    {
+                                        <option value="@cust.Id">
+                                            @cust.Name @(string.IsNullOrEmpty(cust.Phone) ? "" : $"- {cust.Phone}")
+                                        </option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- نظام الحساب (Single / Multi) -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold d-block">نظام اللعب <span class="text-danger">*</span></label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="Mode" id="mSingle" value="Single" checked>
+                                <label class="btn btn-outline-primary py-2 fw-semibold" for="mSingle">
+                                    <i class="fa-solid fa-user me-1"></i> Single (فردي)
+                                </label>
+
+                                <input type="radio" class="btn-check" name="Mode" id="mMulti" value="Multi">
+                                <label class="btn btn-outline-primary py-2 fw-semibold" for="mMulti">
+                                    <i class="fa-solid fa-users me-1"></i> Multi (زوجي)
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- نظام الوقت (مفتوح / محدد) -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold d-block">نظام الوقت</label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="SessionType" id="tOpen" value="Open" checked onchange="toggleMinutes(false)">
+                                <label class="btn btn-outline-secondary py-2" for="tOpen">
+                                    <i class="fa-solid fa-stopwatch-20 me-1"></i> وقت مفتوح
+                                </label>
+
+                                <input type="radio" class="btn-check" name="SessionType" id="tLimit" value="Limit" onchange="toggleMinutes(true)">
+                                <label class="btn btn-outline-secondary py-2" for="tLimit">
+                                    <i class="fa-solid fa-hourglass-half me-1"></i> وقت محدد
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- خانة الدقائق (تظهر عند اختيار وقت محدد) -->
+                        <div class="mb-4" id="targetMinutesDiv" style="display: none;">
+                            <label class="form-label fw-bold">المدة المحددة (بالدقائق)</label>
+                            <select asp-for="TargetMinutes" class="form-select form-select-lg">
+                                <option value="30">30 دقيقة (نصف ساعة)</option>
+                                <option value="60" selected>60 دقيقة (ساعة كاملة)</option>
+                                <option value="90">90 دقيقة (ساعة ونصف)</option>
+                                <option value="120">120 دقيقة (ساعتان)</option>
+                                <option value="180">180 دقيقة (3 ساعات)</option>
+                            </select>
+                        </div>
+
+                        <!-- أزرار الإجراء -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg rounded-pill fw-bold shadow-sm">
+                                <i class="fa-solid fa-play me-1"></i> تشغيل الجهاز وبدء الجلسة
+                            </button>
+                            <a asp-controller="Dashboard" asp-action="Index" class="btn btn-outline-secondary rounded-pill">
+                                إلغاء
+                            </a>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal إضافة عميل سريع -->
+<div class="modal fade" id="quickCustomerModal" tabindex="-1" aria-hidden="true" dir="rtl">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+
+            <div class="modal-header bg-dark text-white">
+                <h6 class="modal-title fw-bold">
+                    <i class="fa-solid fa-user-plus text-success me-2"></i> إضافة عميل جديد
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body p-4">
+                <form id="quickCustomerForm">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">الاسم <span class="text-danger">*</span></label>
+                        <input type="text" id="cName" class="form-control" placeholder="اسم العميل" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">الموبايل</label>
+                        <input type="tel" id="cPhone" class="form-control" placeholder="01xxxxxxxxx" />
+                    </div>
+                    <button type="button" class="btn btn-success w-100 rounded-pill fw-bold" onclick="addCustomerAjax()">
+                        <i class="fa-solid fa-save me-1"></i> حفظ واختيار تلقائي
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleMinutes(show) {
+            document.getElementById('targetMinutesDiv').style.display = show ? 'block' : 'none';
+        }
+
+        function addCustomerAjax() {
+            const name = document.getElementById('cName').value.trim();
+            const phone = document.getElementById('cPhone').value.trim();
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            if (!name) {
+                alert('برجاء إدخال اسم العميل أولاً!');
+                return;
+            }
+
+            const data = new FormData();
+            data.append('name', name);
+            data.append('phone', phone);
+            data.append('__RequestVerificationToken', token);
+
+            fetch('/Session/QuickCreateCustomer', {
+                method: 'POST',
+                body: data
+            })
+            .then(response => response.json())
+            .then(res => {
+                if (res.success) {
+                    const select = document.getElementById('customerSelect');
+                    const option = new Option(res.displayText, res.id, true, true);
+                    select.add(option);
+
+                    // تفريغ الحقول وإغلاق المودال
+                    document.getElementById('cName').value = '';
+                    document.getElementById('cPhone').value = '';
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('quickCustomerModal'));
+                    modal.hide();
+                } else {
+                    alert(res.message || 'تعذر إضافة العميل');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('حدث خطأ أثناء الاتصال بالسيرفر');
+            });
+        }
+    </script>
+}

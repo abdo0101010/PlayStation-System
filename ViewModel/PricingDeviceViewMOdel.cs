@@ -2,7 +2,7 @@
 {
     public class PricingDeviceViewMOdel
     {
-        public int DeviceId { get; set; }
+        public string DeviceId { get; set; }
         public string ?DeviceName { get; set; } 
         public decimal HourPriceSingle { get; set; }
         public decimal HourPriceMulti { get; set; }

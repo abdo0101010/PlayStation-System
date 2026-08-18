@@ -10,11 +10,13 @@ namespace PlaystationSystem.Controllers
     {
         private readonly IGenericService<Shifts> _shiftService;
         private readonly IGenericService<Expense> _expenseService;
-        public ShiftController(IGenericService<Shifts> shiftService, IGenericService<Expense> expenseService)
+        private readonly IShiftServices _shiftServices;
+        public ShiftController(IGenericService<Shifts> shiftService, IGenericService<Expense> expenseService, IShiftServices shiftServices)
         {
             _expenseService = expenseService;
 
             _shiftService = shiftService;
+            _shiftServices = shiftServices;
         }
 
         [HttpPost]
@@ -122,7 +124,7 @@ namespace PlaystationSystem.Controllers
 
         // 3. تقرير ملخص الوردية بعد الإغلاق مباشرة
         [HttpGet]
-        public async Task<IActionResult> ShiftReport(int id)
+        public async Task<IActionResult> ShiftReport(string id)
         {
             var shift = await _shiftService.GetByIdAsync(id);
             if (shift == null) return NotFound();
@@ -181,6 +183,15 @@ namespace PlaystationSystem.Controllers
             TempData["SuccessMessage"] = "تم تسجيل المصروف وخصمه من رصيد الدرج بنجاح.";
             return RedirectToAction("Index", "Home");
         }
+        [HttpGet]
+        public async Task<IActionResult> GetReporet()
+        {
+            // جلب جميع الورديات من الأحدث إلى الأقدم مع بيانات المستخدم
+            var shifts = await _shiftServices.GetDescShift();
+
+            return View(shifts);
+        }
+
         public IActionResult Index()
         {
             return View();

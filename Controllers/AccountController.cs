@@ -48,7 +48,7 @@ namespace PlaystationSystem.Controllers
 
             if (result.Succeeded)
             {
-                await _userManager.AddToRoleAsync(newUser, "Casiher"); 
+                await _userManager.AddToRoleAsync(newUser, "Cashier"); 
 
                 return RedirectToAction("Index", "Home");
             }
@@ -110,6 +110,51 @@ namespace PlaystationSystem.Controllers
         public IActionResult AccessDenied()
         {
             return View();
+        }
+        [HttpGet]
+        public IActionResult RolesList()
+        {
+            var roles = _roleManager.Roles.ToList();
+            return View(roles);
+        }
+
+        // 2. شاشة إضافة رول جديدة
+        [HttpGet]
+        public IActionResult CreateRole()
+        {
+            return View();
+        }
+
+        // 3. استقبال وحفظ الرول
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateRole(CreateRoleViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var roleExist = await _roleManager.RoleExistsAsync(model.RoleName.Trim());
+            if (roleExist)
+            {
+                ModelState.AddModelError(string.Empty, "هذه الرول موجودة بالفعل!");
+                return View(model);
+            }
+
+            var result = await _roleManager.CreateAsync(new IdentityRole(model.RoleName.Trim()));
+            if (result.Succeeded)
+            {
+                TempData["SuccessMessage"] = $"تمت إضافة الرول ({model.RoleName}) بنجاح.";
+                return RedirectToAction(nameof(RolesList));
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+
+            return View(model);
         }
 
     }

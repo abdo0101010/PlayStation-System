@@ -5,7 +5,7 @@ namespace PlaystationSystem.Models
 {
     public class Customer
     {
-        public int Id { get; set; }
+        public string Id { get; set; }=Guid.NewGuid().ToString();
 
         [Required, MaxLength(100)]
         public string Name { get; set; } = string.Empty;

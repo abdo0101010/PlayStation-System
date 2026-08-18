@@ -5,7 +5,7 @@ namespace PlaystationSystem.Models
 {
     public class Device
     {
-        public int Id { get; set; }
+        public string Id { get; set; } = Guid.NewGuid().ToString();
 
         [Required, MaxLength(50)]
         public string Name { get; set; } = string.Empty; // مثلاً: جهاز 1 - جهاز 2 VIP
@@ -20,6 +20,5 @@ namespace PlaystationSystem.Models
         public decimal HourPriceMulti { get; set; } // سعر الساعة دراعين أو أكتر
 
         public bool IsActive { get; set; } = true; // متاح حالياً ولا عطلان
-        public bool IsOccupied { get; set; } = false; // هل الجهاز شغال حالياً؟
     }
 }
