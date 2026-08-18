@@ -2,7 +2,7 @@
 {
     public class CloseShiftViewModel
     {
-        public int ShiftId { get; set; }
+        public string ShiftId { get; set; }
         public string CashierName { get; set; } = string.Empty;
         public DateTime StartTime { get; set; }
         public decimal StartingCash { get; set; }

@@ -59,25 +59,39 @@ namespace PlaystationSystem.Controllers
             return RedirectToAction("Index");
         }
         [HttpPost]
-
-        public async Task<IActionResult> EditUser(ApplicationUser user)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditUser(string id, ApplicationUser model)
         {
-            if (user == null)
+            var existingUser = await _userManager.FindByIdAsync(id);
+            if (existingUser == null)
             {
                 return NotFound();
             }
+
             if (ModelState.IsValid)
             {
+                // تحديث البيانات المطلوبة
+                existingUser.FullName = model.FullName;
+                existingUser.UserName = model.UserName;
+                existingUser.Email = model.Email;
+                existingUser.PhoneNumber = model.PhoneNumber;
+                existingUser.IsActive = model.IsActive;
 
-                var User = await _userManager.FindByIdAsync(user.Id);
-                return RedirectToAction("Index");
+                var result = await _userManager.UpdateAsync(existingUser);
+                if (result.Succeeded)
+                {
+                    TempData["SuccessMessage"] = "تم تحديث بيانات المستخدم بنجاح.";
+                    return RedirectToAction("UsersList"); // أو الأكشن الذي يعرض المستخدمين
+                }
+
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
             }
-
-
-            return View(User);
+                return View(model);
         }
-        [HttpGet]
-
+            [HttpGet]
         public async Task<IActionResult> EditUser(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
@@ -103,8 +117,8 @@ namespace PlaystationSystem.Controllers
             var customers = await _customerRepository.GetAllAsync();
             return View(customers);
         }
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetCustomerDetails(int id)
+        [HttpGet]
+        public async Task<IActionResult> GetCustomerDetails(string id)
         {
             var customer = await _customerRepository.GetByIdAsync(id);
             if (customer == null)
@@ -128,7 +142,7 @@ namespace PlaystationSystem.Controllers
             }
             return View(customer);
         }
-        public async Task<IActionResult> DeleteCustomer(int id)
+        public async Task<IActionResult> DeleteCustomer(string id)
         {
             var customer = await _customerRepository.GetByIdAsync(id);
             if (customer == null)
@@ -140,7 +154,7 @@ namespace PlaystationSystem.Controllers
 
         }
         [HttpGet]
-        public async Task<IActionResult> Details(int id)
+        public async Task<IActionResult> Details(string id)
         {
             var customer = await _customerRepository.GetByIdAsync(id);
             if (customer == null)
@@ -163,7 +177,7 @@ namespace PlaystationSystem.Controllers
             return View("CustomerStatement", statementModel);
         }
         [HttpGet]
-        public async Task<IActionResult> PayDebt(int id)
+        public async Task<IActionResult> PayDebt(string id)
         {
             var customer = await _customerRepository.GetByIdAsync(id);
             if (customer == null)
@@ -180,7 +194,7 @@ namespace PlaystationSystem.Controllers
             return View(customer);
         }
         [HttpPost]
-        public async Task<IActionResult> PayDebt(int customerId, decimal amountPaid)
+        public async Task<IActionResult> PayDebt(string customerId, decimal amountPaid)
         {
             if (amountPaid <= 0)
             {
@@ -202,5 +216,39 @@ namespace PlaystationSystem.Controllers
 
             return RedirectToAction("GetAllCustomers");
         }
+        [HttpGet]
+        public async Task<IActionResult> EditCustomer(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return NotFound();
+
+            var customer = await _customerRepository.GetByIdAsync(id);
+            if (customer == null) return NotFound();
+
+            return View(customer);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditCustomer(string id, Customer model)
+        {
+            if (id != model.Id) return NotFound();
+
+            var customer = await _customerRepository.GetByIdAsync(id);
+            if (customer == null) return NotFound();
+
+            if (ModelState.IsValid)
+            {
+                customer.Name = model.Name;
+                customer.Phone = model.Phone;
+                customer.Debt = model.Debt;
+                customer.TotalPoints = model.TotalPoints;
+
+                await _customerRepository.Update(customer);
+                TempData["SuccessMessage"] = "تم تحديث بيانات العميل بنجاح.";
+                return RedirectToAction(nameof(GetAllCustomers));
+            }
+
+            return View(model);
+        }
     }
+
 }

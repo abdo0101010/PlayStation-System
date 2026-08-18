@@ -4,7 +4,7 @@ namespace PlaystationSystem.Models
 {
     public class Expense
     {
-        public int Id { get; set; }
+        public string Id { get; set; } = Guid.NewGuid().ToString();
 
         public string Title { get; set; } = string.Empty; // بند الصرف (مثلاً: شراء بن وسكر)
 
@@ -15,7 +15,7 @@ namespace PlaystationSystem.Models
         public string? Notes { get; set; }
 
         // ربط المصروف بالوردية الحالية
-        public int ShiftId { get; set; }
+        public string ShiftId { get; set; }
         public Shifts Shift { get; set; } = null!;
     }
 }

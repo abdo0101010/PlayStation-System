@@ -1,0 +1,218 @@
+﻿@model IEnumerable<PlaystationSystem.Models.Shifts>
+
+@{
+    ViewData["Title"] = "سجل الورديات والتقارير المالية";
+    Layout = "_Layout";
+
+    // حساب إحصائيات سريعة للورديات المغلقة
+    var closedShifts = Model.Where(s => !s.IsOpen).ToList();
+    var totalGaming = closedShifts.Sum(s => s.TotalGamingIncome);
+    var totalBuffet = closedShifts.Sum(s => s.TotalBuffetIncome);
+    var totalExpenses = closedShifts.Sum(s => s.TotalExpenses);
+    var netIncome = (totalGaming + totalBuffet + closedShifts.Sum(s => s.TotalDebtCollected)) - totalExpenses;
+}
+
+<div class="container-fluid py-4 px-lg-4" dir="rtl">
+
+    <!-- Header & Quick Actions -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">
+                <i class="fa-solid fa-cash-register text-success me-2"></i> سجل الورديات والتقارير المالية
+            </h3>
+            <p class="text-muted small mb-0">متابعة دقيقة لحركة الخزينة، المبيعات، ومطابقة النقدية لكل كاشير</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="CloseShift" class="btn btn-outline-danger rounded-pill px-3 shadow-sm fw-semibold">
+                <i class="fa-solid fa-lock me-1"></i> تقفيل الوردية الحالية
+            </a>
+            <a asp-action="OpenShift" class="btn btn-success rounded-pill px-3 shadow-sm fw-semibold">
+                <i class="fa-solid fa-play me-1"></i> فتح وردية جديدة
+            </a>
+        </div>
+    </div>
+
+    <!-- Summary KPI Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-primary bg-opacity-10 border-start border-4 border-primary">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="text-muted d-block fw-semibold mb-1">إجمالي إيراد الأجهزة</small>
+                        <h4 class="fw-bold text-primary mb-0">@totalGaming.ToString("0.00") <small class="fs-6">ج.م</small></h4>
+                    </div>
+                    <div class="bg-primary text-white rounded-3 p-3 shadow-sm">
+                        <i class="fa-solid fa-gamepad fa-lg"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-warning bg-opacity-10 border-start border-4 border-warning">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="text-muted d-block fw-semibold mb-1">إجمالي مبيعات البوفيه</small>
+                        <h4 class="fw-bold text-warning-emphasis mb-0">@totalBuffet.ToString("0.00") <small class="fs-6">ج.م</small></h4>
+                    </div>
+                    <div class="bg-warning text-dark rounded-3 p-3 shadow-sm">
+                        <i class="fa-solid fa-mug-hot fa-lg"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-danger bg-opacity-10 border-start border-4 border-danger">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="text-muted d-block fw-semibold mb-1">إجمالي المصروفات النثرية</small>
+                        <h4 class="fw-bold text-danger mb-0">@totalExpenses.ToString("0.00") <small class="fs-6">ج.م</small></h4>
+                    </div>
+                    <div class="bg-danger text-white rounded-3 p-3 shadow-sm">
+                        <i class="fa-solid fa-arrow-trend-down fa-lg"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-success bg-opacity-10 border-start border-4 border-success">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="text-muted d-block fw-semibold mb-1">صافي النقدية المحصلة</small>
+                        <h4 class="fw-bold text-success mb-0">@netIncome.ToString("0.00") <small class="fs-6">ج.م</small></h4>
+                    </div>
+                    <div class="bg-success text-white rounded-3 p-3 shadow-sm">
+                        <i class="fa-solid fa-vault fa-lg"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shifts Table -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-header bg-white py-3 px-4 border-bottom d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0 text-dark">
+                <i class="fa-solid fa-list-check text-secondary me-2"></i> سجل الورديات التفصيلي
+            </h5>
+            <span class="badge bg-secondary rounded-pill px-3 py-2">عدد الورديات: @Model.Count()</span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 text-center">
+                <thead class="table-light text-muted small text-uppercase">
+                    <tr>
+                        <th>#</th>
+                        <th>الكاشير المسؤول</th>
+                        <th>بداية الوردية</th>
+                        <th>نهاية الوردية</th>
+                        <th>الفكة (الافتتاح)</th>
+                        <th>إيراد اللعب</th>
+                        <th>إيراد البوفيه</th>
+                        <th>المصروفات</th>
+                        <th>المتوقع بالدرج</th>
+                        <th>الفعلي المستلم</th>
+                        <th>حالة الخزينة</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="12" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-inbox fa-3x mb-3 d-block text-secondary opacity-50"></i>
+                                لا توجد ورديات مسجلة حتى الآن في النظام.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var shift in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold text-muted">#@shift.Id</td>
+                                <td>
+                                    <div class="d-flex align-items-center justify-content-center gap-2">
+                                        <i class="fa-solid fa-user-circle text-secondary"></i>
+                                        <span class="fw-semibold">@(shift.User?.UserName ?? "كاشير")</span>
+                                    </div>
+                                </td>
+                                <td class="small">
+                                    <div>@shift.StartTime.ToString("yyyy-MM-dd")</div>
+                                    <div class="text-muted small">@shift.StartTime.ToString("hh:mm tt")</div>
+                                </td>
+                                <td class="small">
+                                    @if (shift.IsOpen)
+                                    {
+                                        <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 px-2 py-1 rounded-pill">
+                                            <i class="fa-solid fa-circle fa-beat me-1" style="font-size: 8px;"></i> قيد التشغيل
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <div>@shift.EndTime?.ToString("yyyy-MM-dd")</div>
+                                        <div class="text-muted small">@shift.EndTime?.ToString("hh:mm tt")</div>
+                                    }
+                                </td>
+                                <td class="fw-bold text-muted">@shift.StartingCash.ToString("0.00")</td>
+                                <td class="text-primary fw-semibold">+@shift.TotalGamingIncome.ToString("0.00")</td>
+                                <td class="text-warning-emphasis fw-semibold">+@shift.TotalBuffetIncome.ToString("0.00")</td>
+                                <td class="text-danger fw-semibold">-@shift.TotalExpenses.ToString("0.00")</td>
+                                <td class="fw-bold text-dark bg-light">@shift.ExpectedCash.ToString("0.00")</td>
+                                <td class="fw-bold text-dark">
+                                    @(shift.IsOpen ? "-" : (shift.ActualCash?.ToString("0.00") ?? "0.00"))
+                                </td>
+                                <td>
+                                    @if (shift.IsOpen)
+                                    {
+                                        <span class="badge bg-secondary">غير مقفلة</span>
+                                    }
+                                    else
+                                    {
+                                        var variance = shift.ShortageOrSurplus ?? 0;
+                                        if (variance == 0)
+                                        {
+                                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1 rounded-pill">
+                                                <i class="fa-solid fa-check me-1"></i> مضبوط
+                                            </span>
+                                        }
+                                        else if (variance < 0)
+                                        {
+                                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2 py-1 rounded-pill" title="يوجد عجز">
+                                                عجز: @variance.ToString("0.00")
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2 py-1 rounded-pill" title="توجد زيادة">
+                                                زيادة: +@variance.ToString("0.00")
+                                            </span>
+                                        }
+                                    }
+                                </td>
+                                <td>
+                                    @if (!shift.IsOpen)
+                                    {
+                                        <a asp-action="ShiftReport" asp-route-id="@shift.Id" class="btn btn-sm btn-outline-primary rounded-pill px-3" title="عرض وطباعة التقرير">
+                                            <i class="fa-solid fa-file-invoice me-1"></i> التقرير
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a asp-action="CloseShift" class="btn btn-sm btn-outline-danger rounded-pill px-2">
+                                            تقفيل
+                                        </a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>

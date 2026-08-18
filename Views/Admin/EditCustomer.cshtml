@@ -1,0 +1,69 @@
+﻿@model PlaystationSystem.Models.Customer
+
+@{
+    ViewData["Title"] = "تعديل بيانات العميل";
+}
+
+<div class="container py-4" dir="rtl">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h3 class="fw-bold mb-1">
+                <i class="fa-solid fa-user-pen text-primary me-2"></i>تعديل بيانات العميل
+            </h3>
+            <p class="text-muted small mb-0">تحديث بيانات العميل: <strong>@Model.Name</strong></p>
+        </div>
+        <a asp-action="GetAllCustomers" class="btn btn-outline-secondary rounded-pill px-4">
+            <i class="fa-solid fa-arrow-right me-1"></i> رجوع للعملاء
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4">
+                    <form asp-action="EditCustomer" method="post">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <input type="hidden" asp-for="Id" />
+
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label fw-bold">اسم العميل</label>
+                            <input asp-for="Name" class="form-control rounded-3" placeholder="اسم العميل" required />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Phone" class="form-label fw-bold">رقم الهاتف</label>
+                            <input asp-for="Phone" class="form-control rounded-3" placeholder="010xxxxxxxx" />
+                            <span asp-validation-for="Phone" class="text-danger small"></span>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="Debt" class="form-label fw-bold">المديونية (ج.م)</label>
+                                <input asp-for="Debt" type="number" step="0.5" class="form-control rounded-3" />
+                                <span asp-validation-for="Debt" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="TotalPoints" class="form-label fw-bold">النقاط</label>
+                                <input asp-for="TotalPoints" type="number" class="form-control rounded-3" />
+                                <span asp-validation-for="TotalPoints" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm">
+                                <i class="fa-solid fa-floppy-disk me-1"></i> حفظ التعديلات
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

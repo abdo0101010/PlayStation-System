@@ -4,17 +4,17 @@ namespace PlaystationSystem.Models
 {
     public class Session
     {
-        public int Id { get; set; }
+        public string Id { get; set; } = Guid.NewGuid().ToString();
 
-        public int DeviceId { get; set; }
+        public string DeviceId { get; set; }
         [ForeignKey("DeviceId")]
         public Device Device { get; set; } = null!;
 
-        public int? CustomerId { get; set; } // اختياري لو زبون عابر مش مسجل
+        public string? CustomerId { get; set; } // اختياري لو زبون عابر مش مسجل
         [ForeignKey("CustomerId")]
         public Customer? Customer { get; set; }
 
-        public int ShiftId { get; set; }
+        public string ShiftId { get; set; }
         [ForeignKey("ShiftId")]
         public Shifts Shift { get; set; } = null!;
 
@@ -24,7 +24,7 @@ namespace PlaystationSystem.Models
         public string Mode { get; set; } = "Single"; // Single or Multi (بيحدد سعر الساعة)
         public string SessionType { get; set; } = "Open"; // Open (مفتوح) or Limit (محدد بوقت)
         public int TargetMinutes { get; set; } = 0; // لو محدد بوقت، كام دقيقة؟ (مثلاً 60 دقيقة)
-
+        public bool IsOpen { get; set; } = true;
         // الحسابات والخصومات
         [Column(TypeName = "decimal(18,2)")]
         public decimal DeviceCost { get; set; } = 0; // حساب الوقت فقط
@@ -45,7 +45,7 @@ namespace PlaystationSystem.Models
         // العلاقات
         public ICollection<SessionOrder> Orders { get; set; } = new List<SessionOrder>();
 
-        public int UserId { get; set; }
+        public string UserId { get; set; }
         public ApplicationUser User { get; set; } = null!;
 
     }

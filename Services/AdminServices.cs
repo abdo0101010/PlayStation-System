@@ -40,7 +40,7 @@ namespace PlaystationSystem.Services
             return await _adminRepo.GetSessionByIdAsync(id);
         }
 
-        public async Task<Session?> GetSessionByIdAsync(int id, bool includeOrders)
+        public async Task<Session?> GetSessionByIdAsync(string id, bool includeOrders)
         {
             return await _adminRepo.GetSessionByIdAsync(id, includeOrders);
         }
