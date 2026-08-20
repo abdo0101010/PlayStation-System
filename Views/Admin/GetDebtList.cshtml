@@ -1,0 +1,117 @@
+﻿@model IEnumerable<PlaystationSystem.Models.DebtPayment>
+
+@{
+    ViewData["Title"] = "سجل تحصيل الديون";
+    Layout = "_Layout";
+    var totalCollected = Model?.Sum(d => d.Amount) ?? 0;
+}
+
+<div class="container py-4" dir="rtl">
+    <!-- كارت رأس الصفحة مع الإجمالي -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="fa-solid fa-receipt text-primary me-2"></i>سجل تحصيل الديون والمدفوعات</h3>
+            <p class="text-muted mb-0">عرض كافة المبالغ النقدية المحصلة من حسابات العملاء الآجلة</p>
+        </div>
+        <div class="card bg-success text-white border-0 shadow-sm px-4 py-2 rounded-4">
+            <div class="d-flex align-items-center gap-3">
+                <i class="fa-solid fa-hand-holding-dollar fa-2x"></i>
+                <div>
+                    <small class="text-white-50 d-block">إجمالي المحصل</small>
+                    <span class="fs-4 fw-bold">@totalCollected.ToString("N2") ج.م</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- جدول عرض المدفوعات -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-header bg-white py-3 border-0">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h5 class="fw-bold mb-0 text-secondary"><i class="fa-solid fa-list-check me-2"></i>حركات السداد المسجلة</h5>
+                </div>
+                <div class="col-md-6 mt-2 mt-md-0">
+                    <input type="text" id="searchInput" class="form-control rounded-pill" placeholder="🔍 ابحث برقم العميل، التاريخ..." onkeyup="filterTable()" />
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 text-center" id="debtsTable">
+                <thead class="table-light text-muted">
+                    <tr>
+                        <th>#</th>
+                        <th>معرف العميل</th>
+                        <th>المبلغ المحصل</th>
+                        <th>تاريخ ووقت السداد</th>
+                        <th>رقم الوردية المرتبطة</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        int index = 1;
+                        foreach (var item in Model.OrderByDescending(d => d.PaymentDate))
+                        {
+                            <tr>
+                                <td class="text-muted fw-bold">@index</td>
+                                <td class="fw-bold text-dark">
+                                    <i class="fa-solid fa-user text-secondary me-1"></i>
+                                    @(item.Customer?.Name ?? item.CustomerId)
+                                </td>
+                                <td>
+                                    <span class="badge bg-success bg-opacity-10 text-success fs-6 px-3 py-2 rounded-pill">
+                                        +@item.Amount.ToString("N2") ج.م
+                                    </span>
+                                </td>
+                                <td>
+                                    <i class="fa-regular fa-clock text-muted me-1"></i>
+                                    @item.PaymentDate.ToString("yyyy-MM-dd hh:mm tt")
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(item.ShiftId))
+                                    {
+                                        <span class="badge bg-dark rounded-pill">#@item.ShiftId.Substring(0, Math.Min(8, item.ShiftId.Length))</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary bg-opacity-25 text-dark">غير مرتبط بوردية</span>
+                                    }
+                                </td>
+                            </tr>
+                            index++;
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-folder-open fa-3x mb-3 text-secondary d-block"></i>
+                                لا توجد حركات تحصيل ديون مسجلة حتى الآن.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    function filterTable() {
+        var input = document.getElementById("searchInput");
+        var filter = input.value.toLowerCase();
+        var table = document.getElementById("debtsTable");
+        var tr = table.getElementsByTagName("tr");
+
+        for (var i = 1; i < tr.length; i++) {
+            var rowText = tr[i].textContent || tr[i].innerText;
+            if (rowText.toLowerCase().indexOf(filter) > -1) {
+                tr[i].style.display = "";
+            } else {
+                tr[i].style.display = "none";
+            }
+        }
+    }
+</script>

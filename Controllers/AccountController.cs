@@ -84,7 +84,7 @@ namespace PlaystationSystem.Controllers
                     {
                         await _signInManager.SignInAsync(user, loginViewModel.RememberMe);
 
-                        return RedirectToAction("OpenShift", "Shifts");
+                        return RedirectToAction("OpenShift", "Shift");
                     }
                     else
                     {
@@ -100,7 +100,7 @@ namespace PlaystationSystem.Controllers
             return View(loginViewModel);
         }
         [HttpGet]
-
+        [HttpPost]
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();

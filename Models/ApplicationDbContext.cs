@@ -15,6 +15,8 @@ namespace PlaystationSystem.Models
         public DbSet<SessionOrder> SessionOrders { get; set; } = null!;
         public DbSet<Shifts> Shifts { get; set; } = null!;
         public DbSet<Expense> Expenses { get; set; } = null!;
+        public DbSet<DebtPayment> DebtPayments { get; set; } = null!;
+        
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
