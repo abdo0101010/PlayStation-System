@@ -28,32 +28,42 @@
                 </div>
 
                 <!-- قائمة المستخدم والتقفيل -->
-                <div class="dropdown">
-                    <button class="btn btn-dark border-secondary border-opacity-50 dropdown-toggle d-flex align-items-center gap-2 rounded-pill px-3 py-1 text-white" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fa-solid fa-circle-user text-warning fs-5"></i>
-                        <span class="small fw-semibold">
-                            @(User.FindFirst("FullName")?.Value ?? User.Identity?.Name ?? "حسابي")
-                        </span>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-start shadow-lg border-secondary border-opacity-25 bg-dark mt-2" aria-labelledby="userMenu">
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center gap-2 text-warning" asp-controller="Shifts" asp-action="CloseShift">
-                                <i class="fa-solid fa-lock"></i> إنهاء الوردية (تقفيل)
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider border-secondary opacity-25"></li>
-                        <li>
-                            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline w-100">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="dropdown-item d-flex align-items-center gap-2 text-danger border-0 bg-transparent w-100">
-                                    <i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج
-                                </button>
-                            </form>
-                        </li>
-                    </ul>
-                </div>
+                @if (User.Identity != null && User.Identity.IsAuthenticated)
+                {
+                    <!-- يظهر فقط للمستخدم المسجل دخوله -->
+                    <a asp-controller="Shift" asp-action="AddExpense" class="btn btn-outline-danger btn-sm rounded-pill">
+                        <i class="fa-solid fa-minus-circle me-1"></i> تسجيل مصروف
+                    </a>
 
-            </div>
+                    <div class="dropdown d-inline-block ms-2">
+                        <button class="btn btn-warning rounded-pill dropdown-toggle fw-bold text-dark px-3" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fa-solid fa-user-circle me-1"></i> @(User.FindFirst("FullName")?.Value ?? User.Identity.Name ?? "حسابي")
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 text-end" aria-labelledby="userMenu">
+                            <li>
+                                <a class="dropdown-item text-warning fw-bold" asp-controller="Shift" asp-action="CloseShift">
+                                    <i class="fa-solid fa-lock text-warning me-2"></i> إنهاء الوردية (تقفيل)
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="dropdown-item text-danger fw-bold">
+                                        <i class="fa-solid fa-arrow-right-from-bracket text-danger me-2"></i> تسجيل الخروج
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                }
+                else
+                {
+                    <!-- يظهر فقط للزائر غير المسجل -->
+                    <a asp-controller="Account" asp-action="Login" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
+                        <i class="fa-solid fa-arrow-right-to-bracket me-1"></i> تسجيل الدخول
+                    </a>
+                }
 
         </div>
     </nav>

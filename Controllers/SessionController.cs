@@ -102,7 +102,7 @@ namespace PlaystationSystem.Controllers
             await _sessionService.AddAsync(session);
 
             TempData["SuccessMessage"] = $"تم بدء الجلسة بنجاح على {device.Name}.";
-            return RedirectToAction("Index", "Dashboard");
+            return RedirectToAction("Index", "home");
         }
 
         // 3. إضافة عميل سريع بدون مغادرة الصفحة (AJAX)
@@ -186,7 +186,6 @@ namespace PlaystationSystem.Controllers
 
         // 2. حفظ الفاتورة وإنهاء الجلسة وخصم المخزون
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ConfirmEnd(EndSessionViewModel model)
         {
             var session = await _sessionService.GetByIdAsync(model.SessionId);
@@ -264,7 +263,7 @@ namespace PlaystationSystem.Controllers
             if (session == null)
             {
                 TempData["ErrorMessage"] = "الجلسة غير موجودة!";
-                return RedirectToAction("Index", "Dashboard");
+                return RedirectToAction("Index", "home");
             }
             var device = await _deviceService.GetByIdAsync(session.DeviceId);
             var customer = await _customerService.GetByIdAsync(session.CustomerId);

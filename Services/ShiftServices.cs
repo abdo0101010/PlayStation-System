@@ -1,5 +1,6 @@
 ﻿using PlaystationSystem.Models;
 using PlaystationSystem.Repositoriy;
+using PlaystationSystem.ViewModel;
 
 namespace PlaystationSystem.Services
 {
@@ -25,6 +26,12 @@ namespace PlaystationSystem.Services
         {
            var active=await shiftRepositiory.GetActiveShiftAsync();
             return active;
+        }
+         public async Task<CloseShiftViewModel> PrepareCloseShiftSummaryAsync(Shifts activeShift, string cashierName)
+        {
+            var summary = await shiftRepositiory.PrepareCloseShiftSummaryAsync(activeShift, cashierName);
+            return summary;
+
         }
 
     }

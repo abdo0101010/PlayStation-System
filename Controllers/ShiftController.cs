@@ -51,7 +51,7 @@ namespace PlaystationSystem.Controllers
             await _shiftService.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "تم فتح الوردية بنجاح.";
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("GetReporet");
         }
         [HttpGet]
         public async Task<IActionResult> OpenShift()
@@ -66,7 +66,6 @@ namespace PlaystationSystem.Controllers
 
             return View();
         }
-        // 1. عرض شاشة التقفيل والحسابات الحالية
         [HttpGet]
         public async Task<IActionResult> CloseShift()
         {
@@ -77,24 +76,17 @@ namespace PlaystationSystem.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            var model = new CloseShiftViewModel
-            {
-                ShiftId = activeShift.Id,
-                CashierName = User.FindFirst("FullName")?.Value ?? User.Identity?.Name ?? "الكاشير",
-                StartTime = activeShift.StartTime,
-                StartingCash = activeShift.StartingCash,
-                TotalGamingIncome = activeShift.TotalGamingIncome,
-                TotalBuffetIncome = activeShift.TotalBuffetIncome,
-                TotalDebtCollected = activeShift.TotalDebtCollected,
-                TotalExpenses = activeShift.TotalExpenses
-            };
+            var cashierName = User.FindFirst("FullName")?.Value ?? User.Identity?.Name ?? "الكاشير";
+
+            // استدعاء السيرفيس لحساب المجاميع الفعلية وتعبئة الموديل
+            var model = await _shiftServices.PrepareCloseShiftSummaryAsync(activeShift, cashierName);
 
             return View(model);
         }
 
-        // 2. معالجة وتأكيد إغلاق الوردية
+        // 2. معالجة الإغلاق (HttpPost) - استلام الأرقام الجاهزة من الحقول المخفية
         [HttpPost]
-       
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CloseShift(CloseShiftViewModel model)
         {
             var shift = await _shiftService.GetByIdAsync(model.ShiftId);
@@ -103,17 +95,22 @@ namespace PlaystationSystem.Controllers
                 return NotFound();
             }
 
-            // حساب المبلغ المتوقع والعجز/الزيادة
-            decimal expectedCash = (shift.StartingCash + shift.TotalGamingIncome + shift.TotalBuffetIncome + shift.TotalDebtCollected) - shift.TotalExpenses;
+            // إسناد الأرقام المستلمة من الحقول المخفية إلى كائن الوردية
+            shift.TotalGamingIncome = model.TotalGamingIncome;
+            shift.TotalBuffetIncome = model.TotalBuffetIncome;
+            shift.TotalDebtCollected = model.TotalDebtCollected;
+            shift.TotalExpenses = model.TotalExpenses;
+
+            // حساب النقدية المتوقعة وفارق الخزينة
+            decimal expectedCash = (shift.StartingCash + model.TotalGamingIncome + model.TotalBuffetIncome + model.TotalDebtCollected) - model.TotalExpenses;
             decimal variance = model.ActualCash - expectedCash;
 
-            // تحديث بيانات الوردية
             shift.EndTime = DateTime.Now;
             shift.ExpectedCash = expectedCash;
             shift.ActualCash = model.ActualCash;
             shift.ShortageOrSurplus = variance;
             shift.Notes = model.Notes;
-            shift.IsOpen = false; // إنهاء الوردية
+            shift.IsOpen = false;
 
             await _shiftService.Update(shift);
             await _shiftService.SaveChangesAsync();
@@ -121,7 +118,6 @@ namespace PlaystationSystem.Controllers
             TempData["SuccessMessage"] = "تم إغلاق الوردية بنجاح وتسليم الخزينة.";
             return RedirectToAction("ShiftReport", new { id = shift.Id });
         }
-
         // 3. تقرير ملخص الوردية بعد الإغلاق مباشرة
         [HttpGet]
         public async Task<IActionResult> ShiftReport(string id)
@@ -196,5 +192,7 @@ namespace PlaystationSystem.Controllers
         {
             return View();
         }
+
+
     }
 }

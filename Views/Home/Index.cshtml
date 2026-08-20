@@ -1,8 +1,140 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "الرئيسية - لوحة التحكم";
+    Layout = "_Layout";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container-fluid py-4" dir="rtl">
+    <!-- الترحيب ورأس الصفحة -->
+    <div class="row align-items-center mb-4">
+        <div class="col-md-7">
+            <h2 class="fw-bold text-dark mb-1">
+                مرحباً بك، @(User.FindFirst("FullName")?.Value ?? User.Identity?.Name ?? "كابتن") 👋
+            </h2>
+            <p class="text-muted mb-0">لوحة التحكم السريعة لإدارة أجهزة البلايستيشن، البوفيه، والورديات.</p>
+        </div>
+        <div class="col-md-5 text-md-start mt-3 mt-md-0">
+            <span class="badge bg-dark px-3 py-2 fs-6 rounded-pill shadow-sm">
+                <i class="fa-regular fa-clock text-warning me-1"></i>
+                @DateTime.Now.ToString("dddd، dd MMMM yyyy")
+            </span>
+        </div>
+    </div>
+
+    <!-- كروت الوصول السريع (Quick Actions) -->
+    <div class="row g-3 mb-4">
+        <!-- الأجهزة والجلسات -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-primary text-white overflow-hidden position-relative">
+                <div class="card-body p-4 position-relative" style="z-index: 2;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="badge bg-white bg-opacity-25 rounded-pill px-3 py-1">الأجهزة</span>
+                        <i class="fa-solid fa-gamepad fa-2x"></i>
+                    </div>
+                    <h4 class="fw-bold mb-1">إدارة الأجهزة</h4>
+                    <p class="small text-white-50 mb-3">بدء جلسات، تبديل، وحساب وقت اللعب</p>
+                    <a asp-controller="Session" asp-action="ActiveSessions" class="btn btn-light btn-sm rounded-pill fw-bold text-primary px-3 shadow-sm stretched-link">
+                        عرض الصالة <i class="fa-solid fa-arrow-left ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- البوفيه والطلبات -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-warning text-dark overflow-hidden position-relative">
+                <div class="card-body p-4 position-relative" style="z-index: 2;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="badge bg-dark bg-opacity-10 rounded-pill px-3 py-1">المبيعات</span>
+                        <i class="fa-solid fa-mug-hot fa-2x"></i>
+                    </div>
+                    <h4 class="fw-bold mb-1">طلبات البوفيه</h4>
+                    <p class="small text-muted mb-3">إضافة مشروبات وسناكس للجلسات والطلبات المباشرة</p>
+                    <a asp-controller="Drink" asp-action="Index" class="btn btn-dark btn-sm rounded-pill fw-bold px-3 shadow-sm stretched-link">
+                        قائمة البوفيه <i class="fa-solid fa-arrow-left ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- العملاء والديون -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-info text-white overflow-hidden position-relative">
+                <div class="card-body p-4 position-relative" style="z-index: 2;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="badge bg-white bg-opacity-25 rounded-pill px-3 py-1">الحسابات الآجلة</span>
+                        <i class="fa-solid fa-users fa-2x"></i>
+                    </div>
+                    <h4 class="fw-bold mb-1">العملاء والديون</h4>
+                    <p class="small text-white-50 mb-3">تحصيل النقدية، كشوفات الحساب، والنقاط</p>
+                    <a asp-controller="Admin" asp-action="GetAllCustomers" class="btn btn-light btn-sm rounded-pill fw-bold text-info px-3 shadow-sm stretched-link">
+                        سجل العملاء <i class="fa-solid fa-arrow-left ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- المصروفات النثرية -->
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-danger text-white overflow-hidden position-relative">
+                <div class="card-body p-4 position-relative" style="z-index: 2;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="badge bg-white bg-opacity-25 rounded-pill px-3 py-1">الخزينة</span>
+                        <i class="fa-solid fa-arrow-trend-down fa-2x"></i>
+                    </div>
+                    <h4 class="fw-bold mb-1">المصروفات</h4>
+                    <p class="small text-white-50 mb-3">تسجيل المصاريف وخصمها من عهدة الدرج</p>
+                    <a asp-controller="Shift" asp-action="AddExpense" class="btn btn-light btn-sm rounded-pill fw-bold text-danger px-3 shadow-sm stretched-link">
+                        تسجيل مصروف <i class="fa-solid fa-arrow-left ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- قسم إدارة الوردية والخزينة -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="fa-solid fa-cash-register text-success me-2"></i>إدارة الوردية الحالية
+                    </h5>
+                    <span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3 py-2">
+                        الوردية نشطة
+                    </span>
+                </div>
+                <div class="card-body p-4">
+                    <p class="text-muted">يمكنك بدء وردية جديدة، تسجيل المصروفات، أو إغلاق الحساب وترحيل النقدية ومقارنة الفعلي بالمتوقع.</p>
+
+                    <div class="d-flex flex-wrap gap-2 mt-3">
+                        <a asp-controller="Shift" asp-action="CloseShift" class="btn btn-danger rounded-pill px-4 py-2 fw-bold shadow-sm">
+                            <i class="fa-solid fa-lock me-1"></i> تقفيل الوردية وتسليم الدرج
+                        </a>
+                        <a asp-controller="Shift" asp-action="GetReporet" class="btn btn-outline-dark rounded-pill px-4 py-2 fw-bold">
+                            <i class="fa-solid fa-chart-line me-1"></i> تقارير الورديات السابقة
+                        </a>
+                        <a asp-controller="Admin" asp-action="GetDebtList" class="btn btn-outline-success rounded-pill px-4 py-2 fw-bold">
+                            <i class="fa-solid fa-receipt me-1"></i> سجل تحصيل الديون
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- إرشادات واختصارات سريعة -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-light border">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold text-dark mb-3">
+                        <i class="fa-solid fa-lightbulb text-warning me-2"></i>تعليمات سريعة
+                    </h6>
+                    <ul class="list-unstyled small text-muted mb-0 d-flex flex-column gap-2">
+                        <li><i class="fa-solid fa-check text-success me-1"></i> تأكد من تسجيل كل مصروف لحظياً لضبط عهدة الدرج.</li>
+                        <li><i class="fa-solid fa-check text-success me-1"></i> طلبات البوفيه تضاف للجلسات وتحسب تلقائياً في الفاتورة.</li>
+                        <li><i class="fa-solid fa-check text-success me-1"></i> عند سداد أي دين يتم إضافته مباشرة لإيرادات الوردية الحالية.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

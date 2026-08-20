@@ -54,7 +54,7 @@
             </li>
 
             <li class="nav-item">
-                <a asp-controller="Customers" asp-action="Index" class="nav-link text-white-50 d-flex align-items-center gap-2 py-2">
+                <a asp-controller="Admin" asp-action="GetAllCustomers" class="nav-link text-white-50 d-flex align-items-center gap-2 py-2">
                     <i class="fa-solid fa-users text-primary" style="width: 22px;"></i>
                     <span>العملاء والديون</span>
                 </a>
@@ -108,12 +108,12 @@
 
             <ul class="dropdown-menu dropdown-menu-dark shadow border-secondary border-opacity-25 text-end mb-2" aria-labelledby="dropdownUser1">
                 <li>
-                    <a class="dropdown-item text-danger d-flex align-items-center gap-2" asp-controller="Expenses" asp-action="AddExpense">
+                    <a class="dropdown-item text-danger d-flex align-items-center gap-2" asp-controller="Shift" asp-action="AddExpense">
                         <i class="fa-solid fa-minus-circle"></i> تسجيل مصروف
                     </a>
                 </li>
                 <li>
-                    <a class="dropdown-item text-warning d-flex align-items-center gap-2" asp-controller="Shifts" asp-action="CloseShift">
+                    <a class="dropdown-item text-warning d-flex align-items-center gap-2" asp-controller="Shift" asp-action="CloseShift">
                         <i class="fa-solid fa-lock"></i> تقفيل الوردية
                     </a>
                 </li>

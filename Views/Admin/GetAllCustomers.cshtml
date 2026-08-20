@@ -7,16 +7,23 @@
 
 <div class="container-fluid py-4" dir="rtl">
     <!-- Header Section -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
             <h3 class="fw-bold text-dark mb-1">
                 <i class="fa-solid fa-users text-primary me-2"></i> سجل العملاء والديون
             </h3>
             <p class="text-muted small mb-0">إدارة حسابات العملاء، المديونيات، وسجل الزيارات</p>
         </div>
-        <a asp-action="CreateCustomer" class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold">
-            <i class="fa-solid fa-user-plus me-1"></i> إضافة عميل جديد
-        </a>
+        <div class="d-flex gap-2">
+            <!-- زر سجل تحصيل الديون -->
+            <a asp-action="GetDebtList" class="btn btn-outline-success rounded-pill px-4 shadow-sm fw-bold">
+                <i class="fa-solid fa-receipt me-1"></i> سجل تحصيل الديون
+            </a>
+            <!-- زر إضافة عميل جديد -->
+            <a asp-action="CreateCustomer" class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold">
+                <i class="fa-solid fa-user-plus me-1"></i> إضافة عميل جديد
+            </a>
+        </div>
     </div>
 
     <!-- Search & Filter Card -->
@@ -99,11 +106,11 @@
                                                 <i class="fa-solid fa-hand-holding-dollar"></i>
                                             </a>
                                             <!-- تعديل -->
-                                            <a asp-action="EditUser" asp-route-id="@customer.Id" class="btn btn-sm btn-outline-primary rounded-circle" title="تعديل">
+                                            <a asp-action="EditCustomer" asp-route-id="@customer.Id" class="btn btn-sm btn-outline-primary rounded-circle" title="تعديل">
                                                 <i class="fa-solid fa-pen-to-square"></i>
                                             </a>
                                             <!-- حذف -->
-                                            <a asp-action="Delete" asp-route-id="@customer.Id" class="btn btn-sm btn-outline-danger rounded-circle" title="حذف">
+                                            <a asp-action="DeleteCustomer" asp-route-id="@customer.Id" class="btn btn-sm btn-outline-danger rounded-circle" title="حذف">
                                                 <i class="fa-solid fa-trash-can"></i>
                                             </a>
                                         </div>

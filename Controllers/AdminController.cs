@@ -15,12 +15,16 @@ namespace PlaystationSystem.Controllers
         IAdminServices _adminServices;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IGenericRepository<Customer> _customerRepository;
+        private readonly IGenericService<Shifts> _shiftService;
+        private readonly IGenericService<DebtPayment> _debtPaymentService;
 
-        public AdminController(IAdminServices adminServices, UserManager<ApplicationUser> userManager, IGenericRepository<Customer> customerRepository)
+        public AdminController(IAdminServices adminServices, UserManager<ApplicationUser> userManager, IGenericRepository<Customer> customerRepository, IGenericService<Shifts> shiftService, IGenericService<DebtPayment> debtPaymentService)
         {
             _adminServices = adminServices;
             _userManager = userManager;
             _customerRepository = customerRepository;
+            _shiftService = shiftService;
+            _debtPaymentService = debtPaymentService;
         }
         [HttpGet]
         public async Task<IActionResult> Index()
@@ -150,6 +154,7 @@ namespace PlaystationSystem.Controllers
                 return NotFound();
             }
             await _customerRepository.Delete(customer);
+            await _customerRepository.SaveChangesAsync();
             return RedirectToAction("GetAllCustomers");
 
         }
@@ -198,7 +203,7 @@ namespace PlaystationSystem.Controllers
         {
             if (amountPaid <= 0)
             {
-                ModelState.AddModelError("", "المبلغ المدفوع يجب أن يكون أكبر من الصفر.");
+                TempData["ErrorMessage"] = "المبلغ المدفوع يجب أن يكون أكبر من الصفر.";
                 return RedirectToAction("GetAllCustomers");
             }
 
@@ -207,13 +212,35 @@ namespace PlaystationSystem.Controllers
 
             // 1. خصم المبلغ من دين العميل
             customer.Debt -= amountPaid;
-            if (customer.Debt < 0) customer.Debt = 0; // حماية من القيم السالبة
+            if (customer.Debt < 0) customer.Debt = 0;
 
-           await _customerRepository.Update(customer);
+            await _customerRepository.Update(customer);
+            await _customerRepository.SaveChangesAsync();
 
-            // 2. (اختياري) إضافة المبلغ لحصيلة درج الوردية الحالية
-            // await _shiftService.AddIncomeAsync(amountPaid, $"سداد دين من العميل: {customer.Name}");
+            // 2. جلب الوردية المفتوحة
+            var activeShift = (await _shiftService.FindAsync(s => s.IsOpen)).FirstOrDefault();
 
+            // 3. حفظ حركة السداد في جدول DebtPayment (السطر الناقص)
+            var debt = new DebtPayment
+            {
+                CustomerId = customerId,
+                Amount = amountPaid,
+                PaymentDate = DateTime.Now,
+                ShiftId = activeShift?.Id
+            };
+
+            await _debtPaymentService.AddAsync(debt); // أو _context.DebtPayments.AddAsync(debt);
+            await _debtPaymentService.SaveChangesAsync();
+
+            // 4. تحديث إجمالي الوردية النشطة
+            if (activeShift != null)
+            {
+                activeShift.TotalDebtCollected += amountPaid;
+                await _shiftService.Update(activeShift);
+                await _shiftService.SaveChangesAsync();
+            }
+
+            TempData["SuccessMessage"] = $"تم تحصيل مبلغ {amountPaid:N2} ج.م من العميل {customer.Name} وإضافته لدرج الوردية.";
             return RedirectToAction("GetAllCustomers");
         }
         [HttpGet]
@@ -248,6 +275,12 @@ namespace PlaystationSystem.Controllers
             }
 
             return View(model);
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetDebtList()
+        {
+            var debtPayments = await _debtPaymentService.GetAllAsync();
+            return View(debtPayments);
         }
     }
 
