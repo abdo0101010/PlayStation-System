@@ -1,0 +1,91 @@
+﻿@model PlaystationSystem.ViewModel.CreateTenantViewModel
+
+@{
+    ViewData["Title"] = "إضافة صالة بلايستيشن جديدة";
+    Layout = "_Layout";
+}
+
+<div class="container py-4" dir="rtl">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="card-header bg-dark text-white p-4 text-center">
+                    <h4 class="fw-bold mb-1"><i class="fa-solid fa-shop text-warning me-2"></i>تسجيل صالة بلايستيشن جديدة</h4>
+                    <small class="text-white-50">إنشاء ترخيص المحل وحساب الأدمن المسؤول عنه</small>
+                </div>
+
+                <div class="card-body p-4">
+                    <form asp-action="Create" method="post">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="All" class="alert alert-danger rounded-3 py-2 small mb-3"></div>
+
+                        <!-- بيانات الصالة والاشتراك -->
+                        <h6 class="fw-bold text-primary mb-3"><i class="fa-solid fa-building me-1"></i> 1. بيانات المحل والترخيص</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="StoreName" class="form-label small fw-bold">اسم المحل / الفرع *</label>
+                                <input asp-for="StoreName" class="form-control" placeholder="مثال: PlayStation Hub" />
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="OwnerName" class="form-label small fw-bold">اسم صاحب المحل *</label>
+                                <input asp-for="OwnerName" class="form-control" placeholder="مثال: أحمد محمد" />
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Phone" class="form-label small fw-bold">رقم الهاتف *</label>
+                                <input asp-for="Phone" class="form-control text-start" placeholder="01xxxxxxxxx" dir="ltr" />
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="SubscriptionType" class="form-label small fw-bold">خطة الاشتراك</label>
+                                <select asp-for="SubscriptionType" class="form-select" id="subTypeSelect">
+                                    <option value="1">اشتراك شهري</option>
+                                    <option value="2">اشتراك سنوي</option>
+                                    <option value="3">مدى الحياة (Lifetime)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6" id="durationField">
+                                <label asp-for="DurationInMonths" class="form-label small fw-bold">عدد الشهور المدفوعة</label>
+                                <input asp-for="DurationInMonths" type="number" class="form-control" min="1" max="12" />
+                            </div>
+                        </div>
+
+                        <hr class="text-secondary opacity-25 my-4" />
+
+                        <!-- بيانات الدخول للأدمن -->
+                        <h6 class="fw-bold text-primary mb-3"><i class="fa-solid fa-user-lock me-1"></i> 2. بيانات حساب مدير الصالة</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="UserName" class="form-label small fw-bold">اسم المستخدم (Login Username) *</label>
+                                <input asp-for="UserName" class="form-control text-start" dir="ltr" placeholder="admin_hub" />
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Email" class="form-label small fw-bold">البريد الإلكتروني *</label>
+                                <input asp-for="Email" type="email" class="form-control text-start" dir="ltr" placeholder="owner@email.com" />
+                            </div>
+                            <div class="col-md-12">
+                                <label asp-for="Password" class="form-label small fw-bold">كلمة المرور الافتراضية *</label>
+                                <input asp-for="Password" class="form-control text-start" dir="ltr" placeholder="••••••••" />
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold">
+                                <i class="fa-solid fa-check me-1"></i> حفظ وتفعيل المحل فوراً
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        const subSelect = document.getElementById('subTypeSelect');
+        const durationField = document.getElementById('durationField');
+        subSelect.addEventListener('change', function () {
+            durationField.style.display = this.value === '1' ? 'block' : 'none';
+        });
+    </script>
+}

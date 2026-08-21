@@ -3,12 +3,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PlaystationSystem.Models
 {
-    public class Customer
+    public class Customer: ITenantEntity
     {
         public string Id { get; set; }=Guid.NewGuid().ToString();
 
         [Required, MaxLength(100)]
         public string Name { get; set; } = string.Empty;
+        public string TenantId { get; set; } = string.Empty;
 
         [MaxLength(15)]
         public string? Phone { get; set; }

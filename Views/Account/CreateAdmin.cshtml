@@ -1,0 +1,115 @@
+﻿@model PlaystationSystem.ViewModel.RegisterViewModel
+
+@{
+    ViewData["Title"] = "إضافة مستخدم جديد";
+    Layout = "_Layout";
+}
+
+<div class="container py-5" dir="rtl">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <!-- Header -->
+                <div class="card-header bg-dark text-white p-4 text-center">
+                    <div class="bg-primary bg-opacity-25 text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 60px; height: 60px;">
+                        <i class="fa-solid fa-user-shield fa-2x text-white"></i>
+                    </div>
+                    <h4 class="fw-bold mb-1">إضافة مستخدم للنظام</h4>
+                    <small class="text-white-50">إنشاء حساب جديد وتعيين الصلاحيات الإدارية</small>
+                </div>
+
+                <div class="card-body p-4">
+                    <form asp-action="CreateAdmin" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <!-- عرض رسائل الخطأ العامة -->
+                        <div asp-validation-summary="All" class="alert alert-danger rounded-3 py-2 small mb-3"></div>
+                        <!-- الاسم الكامل -->
+                        <div class="mb-3">
+                            <label asp-for="FullName" class="form-label fw-bold small text-muted">الاسم الكامل <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-id-card text-secondary"></i></span>
+                                <input asp-for="FullName" class="form-control" placeholder="أدخل الاسم بالكامل..." />
+                            </div>
+                            <span asp-validation-for="FullName" class="text-danger small"></span>
+                        </div>
+
+                        <!-- اسم المستخدم -->
+                        <div class="mb-3">
+                            <label asp-for="UserName" class="form-label fw-bold small text-muted">اسم المستخدم (Username) <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-user text-secondary"></i></span>
+                                <input asp-for="UserName" class="form-control" placeholder="مثال: ahmed_admin" autocomplete="off" />
+                            </div>
+                            <span asp-validation-for="UserName" class="text-danger small"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="PhoneNumber" class="form-label fw-bold small text-muted">رقم الهاتف <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-phone text-secondary"></i></span>
+                                <input asp-for="PhoneNumber" class="form-control text-start" placeholder="01xxxxxxxxx" dir="ltr" />
+                            </div>
+                            <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                        </div>
+                        <!-- البريد الإلكتروني -->
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label fw-bold small text-muted">البريد الإلكتروني <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-envelope text-secondary"></i></span>
+                                <input asp-for="Email" type="email" class="form-control" placeholder="example@system.com" />
+                            </div>
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+
+                        <!-- تحديد الصلاحية -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">الدور / الصلاحية <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-shield-halved text-secondary"></i></span>
+                                <select name="selectedRole" class="form-select" required>
+                                    <option value="Cashier" selected>كاشير (Cashier) - إدارة الصالة والورديات فقط</option>
+                                    <option value="Admin">مدير فرع (Admin) - تقارير وأسعار ومخزن</option>
+                                    <option value="SuperAdmin">مدير عام (SuperAdmin) - تحكم كامل وحسابات</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- كلمة المرور -->
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label fw-bold small text-muted">كلمة المرور <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-lock text-secondary"></i></span>
+                                <input asp-for="Password" type="password" class="form-control" placeholder="••••••••" />
+                            </div>
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                        </div>
+
+                        <!-- تأكيد كلمة المرور -->
+                        <div class="mb-4">
+                            <label asp-for="ConfirmPassword" class="form-label fw-bold small text-muted">تأكيد كلمة المرور <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa-solid fa-lock-open text-secondary"></i></span>
+                                <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="••••••••" />
+                            </div>
+                            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                        </div>
+
+                        <!-- أزرار الإجراءات -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm">
+                                <i class="fa-solid fa-check-circle me-1"></i> حفظ وإنشاء الحساب
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary rounded-pill">
+                                إلغاء ورجوع
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

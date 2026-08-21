@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PlaystationSystem.Models;
 using PlaystationSystem.Services;
@@ -11,9 +12,13 @@ namespace PlaystationSystem.Controllers
     public class DeviceController : Controller
     {
         IGenericService<Device> _deviceService;
-        public DeviceController(IGenericService<Device> deviceService)
+        private readonly ICurrentTenantService _currentTenantService;
+        private readonly UserManager<ApplicationUser> _userManager;
+        public DeviceController(IGenericService<Device> deviceService, ICurrentTenantService currentTenantService, UserManager<ApplicationUser> userManager)
         {
             _deviceService = deviceService;
+            _currentTenantService = currentTenantService;
+            _userManager = userManager;
         }
         [HttpGet]
         public async Task<IActionResult> Index()
@@ -33,11 +38,29 @@ namespace PlaystationSystem.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(Device device)
         {
+            // إزالة شرط الـ TenantId من فحص المدخلات لأنه يُحقن من السيستم
+            ModelState.Remove(nameof(device.TenantId));
+
             if (ModelState.IsValid)
             {
+                // إسناد الـ TenantId الحالي إذا كان فارغاً
+                if (string.IsNullOrEmpty(device.TenantId))
+                {
+                    device.TenantId = _currentTenantService.TenantId;
+
+                    // في حال كان الـ Claim فارغاً، نجلبه من قاعدة البيانات مباشرة
+                    if (string.IsNullOrEmpty(device.TenantId))
+                    {
+                        var user = await _userManager.GetUserAsync(User);
+                        device.TenantId = user?.TenantId ?? string.Empty;
+                    }
+                }
+
                 await _deviceService.AddAsync(device);
-                return RedirectToAction("Index");
+                TempData["SuccessMessage"] = "تم إضافة الجهاز بنجاح.";
+                return RedirectToAction(nameof(Index));
             }
+
             return View(device);
         }
         [HttpGet]
@@ -72,33 +95,28 @@ namespace PlaystationSystem.Controllers
            
             return RedirectToAction("Index");
         }
+        [HttpGet]
         public async Task<IActionResult> GetPricing()
         {
-            var DevicesList = await _deviceService.GetAllAsync();
-            var pricingList = new List<PricingDeviceViewMOdel>();
-            foreach (var device in DevicesList)
+            var devicesList = await _deviceService.GetAllAsync();
+
+            var pricingList = devicesList.Select(device => new PricingDeviceViewMOdel
             {
-                var pricing = new PricingDeviceViewMOdel
-                {
-                    DeviceId = device.Id,
-                    DeviceName = device.Name,
-                    HourPriceSingle = device.HourPriceSingle,
-                    HourPriceMulti = device.HourPriceMulti
-                    ,Type = device.Type
-                    ,IsOccupied = device.IsActive
-                };
-                pricingList.Add(pricing);
-            }
+                DeviceId = device.Id,
+                DeviceName = device.Name,
+                HourPriceSingle = device.HourPriceSingle,
+                HourPriceMulti = device.HourPriceMulti,
+                Type = device.Type,
+                IsOccupied = device.IsActive
+            }).ToList();
+
             ViewBag.AverageSinglePrice = pricingList.Any() ? pricingList.Average(p => p.HourPriceSingle) : 0;
             ViewBag.AverageMultiPrice = pricingList.Any() ? pricingList.Average(p => p.HourPriceMulti) : 0;
-            if (pricingList.Count == 0)
-            {
-                return NotFound();
-            }
+
+            // تم حذف return NotFound() حتى تُفتح الصفحة وتعرض جدولاً فارغاً إذا لم توجد أجهزة
             return View(pricingList);
         }
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ToggleStatus(string id)
         {
             var device = await _deviceService.GetByIdAsync(id);

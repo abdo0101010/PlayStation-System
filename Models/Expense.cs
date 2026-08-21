@@ -2,7 +2,7 @@
 
 namespace PlaystationSystem.Models
 {
-    public class Expense
+    public class Expense: ITenantEntity
     {
         public string Id { get; set; } = Guid.NewGuid().ToString();
 
@@ -17,5 +17,6 @@ namespace PlaystationSystem.Models
         // ربط المصروف بالوردية الحالية
         public string ShiftId { get; set; }
         public Shifts Shift { get; set; } = null!;
+        public string TenantId { get; set; } = string.Empty;
     }
 }

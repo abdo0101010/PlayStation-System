@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PlaystationSystem.Models
 {
-    public class Device
+    public class Device: ITenantEntity
     {
         public string Id { get; set; } = Guid.NewGuid().ToString();
 
@@ -20,5 +20,6 @@ namespace PlaystationSystem.Models
         public decimal HourPriceMulti { get; set; } // سعر الساعة دراعين أو أكتر
 
         public bool IsActive { get; set; } = true; // متاح حالياً ولا عطلان
+        public string TenantId { get; set; } = string.Empty;
     }
 }

@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace PlaystationSystem.Models
 {
-    public class SessionOrder
+    public class SessionOrder: ITenantEntity
     {
         public string Id { get; set; } = Guid.NewGuid().ToString();
 
@@ -21,6 +21,7 @@ namespace PlaystationSystem.Models
         public decimal UnitPrice { get; set; }
         [NotMapped]
         public decimal TotalPrice => Quantity * UnitPrice;
+        public string TenantId { get; set; } = string.Empty;
     }
 }
 // Scaffold-DbContext "Server=localdb;Database=PlaystationSystem;Trusted_Connection=True;"Microsoft.EntityFrameworkCore.SqlServer - OutputDir Models
