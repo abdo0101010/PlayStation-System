@@ -3,12 +3,14 @@ using Microsoft.EntityFrameworkCore;
 using PlaystationSystem.Models;
 using PlaystationSystem.Repositoriy;
 using PlaystationSystem.Services;
+using System.Threading.Tasks;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace PlaystationSystem
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
 
             var builder = WebApplication.CreateBuilder(args);
@@ -24,6 +26,9 @@ namespace PlaystationSystem
             builder.Services.AddScoped(typeof(IGenericService<>), typeof(GenericService<>));
             builder.Services.AddScoped<IShiftRepositiory, ShiftRepositiory>();
             builder.Services.AddScoped<IShiftServices, ShiftServices>();
+            builder.Services.AddScoped<ICurrentTenantRepositoriy, CurrentTenantRepositoriy>();
+            builder.Services.AddScoped<ICurrentTenantService, CurrentTenantService>();
+
             builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();  
 
@@ -49,12 +54,24 @@ namespace PlaystationSystem
 
             app.UseAuthentication(); // 👈 1. يقرأ التوثيق ويكريت الـ Cookie
             app.UseAuthorization();
-          
+            app.UseMiddleware<SubscriptionValidationMiddleware>();
+
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
 
-
+            using(var scope = app.Services.CreateScope())
+{
+                var services = scope.ServiceProvider;
+                try
+                {
+                    await DbInitializer.SeedRolesAndAdminAsync(services);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error seeding data: {ex.Message}");
+                }
+            }
             app.Run();
         }
     }

@@ -2,7 +2,7 @@
 
 namespace PlaystationSystem.Models
 {
-    public class DebtPayment
+    public class DebtPayment: ITenantEntity
     {
         public int Id { get; set; }
         public string CustomerId { get; set; } = null!;
@@ -11,5 +11,6 @@ namespace PlaystationSystem.Models
         public decimal Amount { get; set; }
         public DateTime PaymentDate { get; set; } = DateTime.Now;
         public string? ShiftId { get; set; }
+        public string TenantId { get; set; } = string.Empty;
     }
 }

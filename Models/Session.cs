@@ -2,7 +2,7 @@
 
 namespace PlaystationSystem.Models
 {
-    public class Session
+    public class Session: ITenantEntity
     {
         public string Id { get; set; } = Guid.NewGuid().ToString();
 
@@ -47,6 +47,7 @@ namespace PlaystationSystem.Models
 
         public string UserId { get; set; }
         public ApplicationUser User { get; set; } = null!;
+        public string TenantId { get; set; } = string.Empty;
 
     }
 }

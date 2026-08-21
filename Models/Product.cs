@@ -3,10 +3,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PlaystationSystem.Models
 {
-    public class Product
+    public class Product: ITenantEntity
     {
         public string Id { get; set; } = Guid.NewGuid().ToString();
-
+        public string TenantId { get; set; } = string.Empty;
         [Required, MaxLength(100)]
         public string Name { get; set; } = string.Empty; // شيبسي، كانز، قهوة...
 

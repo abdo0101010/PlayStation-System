@@ -1,62 +1,40 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using PlaystationSystem.Models;
 using PlaystationSystem.Services;
 using PlaystationSystem.ViewModel;
+using System.Security.Claims;
 
 namespace PlaystationSystem.Controllers
 {
+    [Authorize]
     public class ShiftController : Controller
     {
         private readonly IGenericService<Shifts> _shiftService;
         private readonly IGenericService<Expense> _expenseService;
         private readonly IShiftServices _shiftServices;
-        public ShiftController(IGenericService<Shifts> shiftService, IGenericService<Expense> expenseService, IShiftServices shiftServices)
-        {
-            _expenseService = expenseService;
+        private readonly ICurrentTenantService _currentTenantService;
+        private readonly UserManager<ApplicationUser> _userManager;
 
+        public ShiftController(
+            IGenericService<Shifts> shiftService,
+            IGenericService<Expense> expenseService,
+            IShiftServices shiftServices,
+            ICurrentTenantService currentTenantService,
+            UserManager<ApplicationUser> userManager)
+        {
             _shiftService = shiftService;
+            _expenseService = expenseService;
             _shiftServices = shiftServices;
+            _currentTenantService = currentTenantService;
+            _userManager = userManager;
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> OpenShift(decimal startingCash = 0)
-        {
-            var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(currentUserId))
-            {
-                return Unauthorized();
-            }
-
-            // 1. التأكد من عدم وجود أي وردية مفتوحة في المحل حالياً
-            var openShifts = await _shiftService.FindAsync(s => s.IsOpen);
-            if (openShifts.Any())
-            {
-                TempData["ErrorMessage"] = "يوجد وردية مفتوحة بالفعل في السيستم، يجب إغلاقها أولاً.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            // 2. إنشاء الوردية الجديدة بالعهدة المدخلة
-            var newShift = new Shifts
-            {
-                UserId = currentUserId,
-                StartTime = DateTime.Now,
-                IsOpen = true,
-                StartingCash = startingCash,
-                ExpectedCash = startingCash // تبدأ بنفس رصيد الافتتاح
-            };
-
-            await _shiftService.AddAsync(newShift);
-            await _shiftService.SaveChangesAsync();
-
-            TempData["SuccessMessage"] = "تم فتح الوردية بنجاح.";
-            return RedirectToAction("GetReporet");
-        }
         [HttpGet]
         public async Task<IActionResult> OpenShift()
         {
-            // فحص هل يوجد وردية مفتوحة حالياً في السيستم
+            // فحص هل يوجد وردية مفتوحة حالياً لنفس المحل
             var openShifts = await _shiftService.FindAsync(s => s.IsOpen);
             if (openShifts.Any())
             {
@@ -66,6 +44,51 @@ namespace PlaystationSystem.Controllers
 
             return View();
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> OpenShift(decimal startingCash = 0)
+        {
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                return Unauthorized();
+            }
+
+            // 1. التأكد من عدم وجود أي وردية مفتوحة في المحل حالياً
+            var openShifts = await _shiftService.FindAsync(s => s.IsOpen);
+            if (openShifts.Any())
+            {
+                TempData["ErrorMessage"] = "يوجد وردية مفتوحة بالفعل في الصالة، يجب إغلاقها أولاً.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            // تحديد الـ TenantId التابع له المستخدم
+            var tenantId = _currentTenantService.TenantId;
+            if (string.IsNullOrEmpty(tenantId))
+            {
+                var user = await _userManager.GetUserAsync(User);
+                tenantId = user?.TenantId ?? string.Empty;
+            }
+
+            // 2. إنشاء الوردية الجديدة وإسناد الـ TenantId
+            var newShift = new Shifts
+            {
+                UserId = currentUserId,
+                StartTime = DateTime.UtcNow,
+                IsOpen = true,
+                StartingCash = startingCash,
+                ExpectedCash = startingCash,
+                TenantId = tenantId
+            };
+
+            await _shiftService.AddAsync(newShift);
+            await _shiftService.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "تم فتح الوردية بنجاح.";
+            return RedirectToAction(nameof(GetReporet));
+        }
+
         [HttpGet]
         public async Task<IActionResult> CloseShift()
         {
@@ -84,7 +107,6 @@ namespace PlaystationSystem.Controllers
             return View(model);
         }
 
-        // 2. معالجة الإغلاق (HttpPost) - استلام الأرقام الجاهزة من الحقول المخفية
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CloseShift(CloseShiftViewModel model)
@@ -95,7 +117,7 @@ namespace PlaystationSystem.Controllers
                 return NotFound();
             }
 
-            // إسناد الأرقام المستلمة من الحقول المخفية إلى كائن الوردية
+            // إسناد الأرقام المحسوبة
             shift.TotalGamingIncome = model.TotalGamingIncome;
             shift.TotalBuffetIncome = model.TotalBuffetIncome;
             shift.TotalDebtCollected = model.TotalDebtCollected;
@@ -105,7 +127,7 @@ namespace PlaystationSystem.Controllers
             decimal expectedCash = (shift.StartingCash + model.TotalGamingIncome + model.TotalBuffetIncome + model.TotalDebtCollected) - model.TotalExpenses;
             decimal variance = model.ActualCash - expectedCash;
 
-            shift.EndTime = DateTime.Now;
+            shift.EndTime = DateTime.UtcNow;
             shift.ExpectedCash = expectedCash;
             shift.ActualCash = model.ActualCash;
             shift.ShortageOrSurplus = variance;
@@ -118,7 +140,7 @@ namespace PlaystationSystem.Controllers
             TempData["SuccessMessage"] = "تم إغلاق الوردية بنجاح وتسليم الخزينة.";
             return RedirectToAction("ShiftReport", new { id = shift.Id });
         }
-        // 3. تقرير ملخص الوردية بعد الإغلاق مباشرة
+
         [HttpGet]
         public async Task<IActionResult> ShiftReport(string id)
         {
@@ -126,10 +148,10 @@ namespace PlaystationSystem.Controllers
             if (shift == null) return NotFound();
             return View(shift);
         }
+
         [HttpGet]
         public async Task<IActionResult> AddExpense()
         {
-            // التأكد من وجود وردية مفتوحة
             var activeShift = (await _shiftService.FindAsync(s => s.IsOpen)).FirstOrDefault();
             if (activeShift == null)
             {
@@ -139,6 +161,7 @@ namespace PlaystationSystem.Controllers
 
             return View();
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddExpense(string title, decimal amount, string? notes)
@@ -156,43 +179,48 @@ namespace PlaystationSystem.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            // 1. تسجيل حركة المصروف
+            var tenantId = _currentTenantService.TenantId;
+            if (string.IsNullOrEmpty(tenantId))
+            {
+                var user = await _userManager.GetUserAsync(User);
+                tenantId = user?.TenantId ?? string.Empty;
+            }
+
+            // 1. تسجيل حركة المصروف وإسناد الـ TenantId
             var expense = new Expense
             {
-                Title = title,
+                Title = title.Trim(),
                 Amount = amount,
                 Notes = notes,
                 ShiftId = activeShift.Id,
-                CreatedAt = DateTime.Now
+                CreatedAt = DateTime.UtcNow,
+                TenantId = tenantId
             };
-            if (ModelState.IsValid)
-            {
-                await _expenseService.AddAsync(expense);
+
+            await _expenseService.AddAsync(expense);
+
+            // 2. تحديث إجمالي مصروفات الوردية الحالية
             activeShift.TotalExpenses += amount;
             await _shiftService.Update(activeShift);
 
             await _expenseService.SaveChangesAsync();
+            await _shiftService.SaveChangesAsync();
 
-            }
-
-            // 2. تحديث إجمالي المصروفات في الوردية الحالية
             TempData["SuccessMessage"] = "تم تسجيل المصروف وخصمه من رصيد الدرج بنجاح.";
             return RedirectToAction("Index", "Home");
         }
+
         [HttpGet]
         public async Task<IActionResult> GetReporet()
         {
-            // جلب جميع الورديات من الأحدث إلى الأقدم مع بيانات المستخدم
             var shifts = await _shiftServices.GetDescShift();
-
             return View(shifts);
         }
 
+        [HttpGet]
         public IActionResult Index()
         {
             return View();
         }
-
-
     }
 }

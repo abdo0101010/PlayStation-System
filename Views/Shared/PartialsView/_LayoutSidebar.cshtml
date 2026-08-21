@@ -47,7 +47,7 @@
             </li>
 
             <li class="nav-item">
-                <a asp-controller="drink" asp-action="Index" class="nav-link text-white-50 d-flex align-items-center gap-2 py-2">
+                <a asp-controller="Drink" asp-action="Index" class="nav-link text-white-50 d-flex align-items-center gap-2 py-2">
                     <i class="fa-solid fa-mug-hot text-danger" style="width: 22px;"></i>
                     <span>المشروبات والمخزن</span>
                 </a>
@@ -67,8 +67,8 @@
                 </a>
             </li>
 
-            <!-- قسم إدارة الحسابات للمدير فقط -->
-            @if (User.IsInRole("Admin"))
+            <!-- قسم إدارة الحسابات (يظهر للمدير والسوبر أدمن) -->
+            @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
             {
                 <li class="border-top border-secondary border-opacity-25 pt-2 mt-2">
                     <small class="text-white-50 px-2 d-block mb-1 fw-bold" style="font-size: 11px;">إدارة الصلاحيات</small>
@@ -78,6 +78,17 @@
                     <a asp-controller="Admin" asp-action="Index" class="nav-link text-white-50 d-flex align-items-center gap-2 py-2">
                         <i class="fa-solid fa-users-gear text-warning" style="width: 22px;"></i>
                         <span>إدارة الموظفين والأدوار</span>
+                    </a>
+                </li>
+            }
+
+            <!-- قسم خاص بالسوبر أدمن فقط (SuperAdmin) -->
+            @if (User.IsInRole("SuperAdmin"))
+            {
+                <li class="nav-item">
+                    <a asp-controller="Account" asp-action="CreateAdmin" class="nav-link text-warning d-flex align-items-center gap-2 py-2">
+                        <i class="fa-solid fa-user-plus text-warning" style="width: 22px;"></i>
+                        <span>إضافة مستخدم جديد</span>
                     </a>
                 </li>
             }
@@ -117,6 +128,16 @@
                         <i class="fa-solid fa-lock"></i> تقفيل الوردية
                     </a>
                 </li>
+
+                <!-- خيار سريع للسوبر أدمن داخل القائمة السفلية أيضاً -->
+                @if (User.IsInRole("SuperAdmin"))
+                {
+                    <li>
+                        <a class="dropdown-item text-warning d-flex align-items-center gap-2" asp-controller="Account" asp-action="CreateAdmin">
+                            <i class="fa-solid fa-user-shield"></i> إنشاء حساب جديد
+                        </a>
+                    </li>
+                }
 
                 @if (User.Identity?.IsAuthenticated == true)
                 {

@@ -2,7 +2,7 @@
 
 namespace PlaystationSystem.Models
 {
-    public class Shifts
+    public class Shifts: ITenantEntity
     {
         public string Id { get; set; } = Guid.NewGuid().ToString();
 
@@ -44,5 +44,6 @@ namespace PlaystationSystem.Models
 
         [ForeignKey("UserId")]
         public ApplicationUser User { get; set; } = null!;
+        public string TenantId { get; set; } = string.Empty;
     }
 }

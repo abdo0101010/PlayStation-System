@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PlaystationSystem.Models;
 using PlaystationSystem.ViewModel;
@@ -152,6 +153,61 @@ namespace PlaystationSystem.Controllers
             foreach (var error in result.Errors)
             {
                 ModelState.AddModelError(string.Empty, error.Description);
+            }
+
+            return View(model);
+        }
+        [Authorize(Roles = "SuperAdmin")]
+        [HttpGet]
+        public IActionResult CreateAdmin()
+        {
+            return View();
+        }
+        [Authorize(Roles = "SuperAdmin")]
+        [HttpPost]
+        public async Task<IActionResult> CreateAdmin(RegisterViewModel model, string selectedRole)
+        {
+            if (ModelState.IsValid)
+            {
+                // 1. التأكد أولاً من عدم تكرار اسم المستخدم أو الإيميل
+                var existingUser = await _userManager.FindByNameAsync(model.UserName);
+                if (existingUser != null)
+                {
+                    ModelState.AddModelError("UserName", "اسم المستخدم هذا مسجل بالفعل.");
+                    return View(model);
+                }
+
+                var user = new ApplicationUser
+                {
+                    UserName = model.UserName,
+                    Email = model.Email,
+                    FullName = model.FullName,
+                    IsActive = true,
+                    EmailConfirmed = true
+                };
+
+                var result = await _userManager.CreateAsync(user, model.Password);
+                if (result.Succeeded)
+                {
+                    // 2. التأكد من وجود الرتبة وإنشائها إذا لم تكن موجودة
+                    if (!string.IsNullOrEmpty(selectedRole))
+                    {
+                        if (!await _roleManager.RoleExistsAsync(selectedRole))
+                        {
+                            await _roleManager.CreateAsync(new IdentityRole(selectedRole));
+                        }
+                        await _userManager.AddToRoleAsync(user, selectedRole);
+                    }
+
+                    TempData["SuccessMessage"] = $"تم إنشاء حساب {selectedRole} بنجاح باسم {user.FullName}.";
+                    return RedirectToAction("Index", "Home");
+                }
+
+                // 3. إضافة أخطاء Identity (مثل شروط قوة كلمة المرور)
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
             }
 
             return View(model);

@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using PlaystationSystem.Models;
 using PlaystationSystem.Services;
 using PlaystationSystem.ViewModel;
@@ -6,6 +8,7 @@ using System.Security.Claims;
 
 namespace PlaystationSystem.Controllers
 {
+    [Authorize]
     public class SessionController : Controller
     {
         private readonly IGenericService<Session> _sessionService;
@@ -14,6 +17,8 @@ namespace PlaystationSystem.Controllers
         private readonly IShiftServices _shiftServices;
         private readonly IGenericService<Product> _productService;
         private readonly IGenericService<SessionOrder> _sessionOrderService;
+        private readonly ICurrentTenantService _currentTenantService;
+        private readonly UserManager<ApplicationUser> _userManager;
 
         public SessionController(
             IGenericService<Session> sessionService,
@@ -21,7 +26,9 @@ namespace PlaystationSystem.Controllers
             IGenericService<Device> deviceService,
             IShiftServices shiftServices,
             IGenericService<Product> productService,
-            IGenericService<SessionOrder> sessionOrderService)
+            IGenericService<SessionOrder> sessionOrderService,
+            ICurrentTenantService currentTenantService,
+            UserManager<ApplicationUser> userManager)
         {
             _sessionService = sessionService;
             _customerService = customerService;
@@ -29,6 +36,8 @@ namespace PlaystationSystem.Controllers
             _shiftServices = shiftServices;
             _productService = productService;
             _sessionOrderService = sessionOrderService;
+            _currentTenantService = currentTenantService;
+            _userManager = userManager;
         }
 
         // 1. فتح شاشة بدء الجلسة
@@ -48,7 +57,6 @@ namespace PlaystationSystem.Controllers
             var model = new StartSessionViewModel
             {
                 DeviceId = deviceId ?? string.Empty,
-                // تصحيح: d.IsActive لعرض الأجهزة المتاحة داخل القائمة
                 AvailableDevices = allDevices
                     .Where(d => d.IsActive || d.Id == deviceId)
                     .ToList(),
@@ -72,7 +80,7 @@ namespace PlaystationSystem.Controllers
                 return RedirectToAction("OpenShift", "Shifts");
             }
 
-            var device = await _deviceService.GetByIdAsync( model.DeviceId);
+            var device = await _deviceService.GetByIdAsync(model.DeviceId);
             if (device == null || !device.IsActive)
             {
                 TempData["ErrorMessage"] = "هذا الجهاز غير متاح أو مشغول حالياً!";
@@ -80,6 +88,12 @@ namespace PlaystationSystem.Controllers
             }
 
             var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+            var tenantId = _currentTenantService.TenantId;
+            if (string.IsNullOrEmpty(tenantId))
+            {
+                var user = await _userManager.GetUserAsync(User);
+                tenantId = user?.TenantId ?? string.Empty;
+            }
 
             var session = new Session
             {
@@ -87,14 +101,15 @@ namespace PlaystationSystem.Controllers
                 CustomerId = model.CustomerId,
                 ShiftId = activeShift.Id,
                 UserId = currentUserId,
-                StartTime = DateTime.Now,
+                StartTime = DateTime.UtcNow,
                 IsOpen = true,
                 Mode = model.Mode,
                 SessionType = model.SessionType,
-                TargetMinutes = model.SessionType == "Limit" ? model.TargetMinutes : 0
+                TargetMinutes = model.SessionType == "Limit" ? model.TargetMinutes : 0,
+                TenantId = tenantId
             };
 
-            // تحويل الجهاز إلى مشغول (غير متاح)
+            // تحويل الجهاز إلى مشغول
             device.IsActive = false;
             await _deviceService.Update(device);
 
@@ -102,7 +117,7 @@ namespace PlaystationSystem.Controllers
             await _sessionService.AddAsync(session);
 
             TempData["SuccessMessage"] = $"تم بدء الجلسة بنجاح على {device.Name}.";
-            return RedirectToAction("Index", "home");
+            return RedirectToAction("Index", "Home");
         }
 
         // 3. إضافة عميل سريع بدون مغادرة الصفحة (AJAX)
@@ -115,10 +130,18 @@ namespace PlaystationSystem.Controllers
                 return Json(new { success = false, message = "برجاء إدخال اسم العميل" });
             }
 
+            var tenantId = _currentTenantService.TenantId;
+            if (string.IsNullOrEmpty(tenantId))
+            {
+                var user = await _userManager.GetUserAsync(User);
+                tenantId = user?.TenantId ?? string.Empty;
+            }
+
             var customer = new Customer
             {
                 Name = name.Trim(),
-                Phone = phone?.Trim()
+                Phone = phone?.Trim(),
+                TenantId = tenantId
             };
 
             await _customerService.AddAsync(customer);
@@ -130,7 +153,8 @@ namespace PlaystationSystem.Controllers
                 displayText = $"{customer.Name} {(string.IsNullOrEmpty(customer.Phone) ? "" : "- " + customer.Phone)}"
             });
         }
-        // 1. شاشة عرض تفاصيل الفاتورة وإضافة البوفيه
+
+        // 4. شاشة عرض تفاصيل الفاتورة وإضافة البوفيه
         [HttpGet]
         public async Task<IActionResult> End(string id)
         {
@@ -146,7 +170,7 @@ namespace PlaystationSystem.Controllers
                 ? await _customerService.GetByIdAsync(session.CustomerId)
                 : null;
 
-            var endTime = DateTime.Now;
+            var endTime = DateTime.UtcNow;
             var duration = endTime - session.StartTime;
             decimal totalMinutes = (decimal)duration.TotalMinutes;
 
@@ -156,7 +180,6 @@ namespace PlaystationSystem.Controllers
 
             decimal deviceCost = Math.Round((totalMinutes / 60m) * hourlyRate, 2);
 
-            // جلب المنتجات المتاحة في المخزن (شيبسي، مشروبات...)
             var products = (await _productService.GetAllAsync())
                 .Where(p => p.StockQuantity > 0)
                 .Select(p => new ProductItemViewModel
@@ -184,8 +207,9 @@ namespace PlaystationSystem.Controllers
             return View(model);
         }
 
-        // 2. حفظ الفاتورة وإنهاء الجلسة وخصم المخزون
+        // 5. حفظ الفاتورة وإنهاء الجلسة وخصم المخزون
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ConfirmEnd(EndSessionViewModel model)
         {
             var session = await _sessionService.GetByIdAsync(model.SessionId);
@@ -196,7 +220,7 @@ namespace PlaystationSystem.Controllers
             }
 
             var device = await _deviceService.GetByIdAsync(session.DeviceId);
-            var endTime = DateTime.Now;
+            var endTime = DateTime.UtcNow;
             var duration = endTime - session.StartTime;
             decimal totalMinutes = (decimal)duration.TotalMinutes;
 
@@ -206,6 +230,8 @@ namespace PlaystationSystem.Controllers
 
             decimal deviceCost = Math.Round((totalMinutes / 60m) * hourlyRate, 2);
             decimal productsCost = 0;
+
+            var tenantId = _currentTenantService.TenantId ?? session.TenantId;
 
             // معالجة المنتجات والطلبات وحفظها
             if (model.SelectedOrders != null && model.SelectedOrders.Any())
@@ -218,13 +244,13 @@ namespace PlaystationSystem.Controllers
                         var itemTotal = product.SellingPrice * order.Quantity;
                         productsCost += itemTotal;
 
-                        // إنشاء سجل الطلب
                         var sessionOrder = new SessionOrder
                         {
                             SessionId = session.Id,
                             ProductId = product.Id,
                             Quantity = order.Quantity,
-                            UnitPrice = product.SellingPrice
+                            UnitPrice = product.SellingPrice,
+                            TenantId = tenantId
                         };
                         await _sessionOrderService.AddAsync(sessionOrder);
 
@@ -257,24 +283,30 @@ namespace PlaystationSystem.Controllers
             TempData["SuccessMessage"] = $"تم إنهاء جلسة {device?.Name} بنجاح. إجمالي الحساب: {session.TotalAmount:0.00} ج.م";
             return RedirectToAction("Index", "Dashboard");
         }
+
+        [HttpGet]
         public async Task<IActionResult> Details(string sessionId)
         {
             var session = await _sessionService.GetByIdAsync(sessionId);
             if (session == null)
             {
                 TempData["ErrorMessage"] = "الجلسة غير موجودة!";
-                return RedirectToAction("Index", "home");
+                return RedirectToAction("Index", "Home");
             }
             var device = await _deviceService.GetByIdAsync(session.DeviceId);
-            var customer = await _customerService.GetByIdAsync(session.CustomerId);
+            var customer = !string.IsNullOrEmpty(session.CustomerId)
+                ? await _customerService.GetByIdAsync(session.CustomerId)
+                : null;
+
             var model = new SessionDetailsViewModel
             {
                 Session = session,
                 DeviceName = device?.Name ?? "غير معروف",
-                CustomerName = customer?.Name ?? "غير معروف"
+                CustomerName = customer?.Name ?? "زبون عابر"
             };
             return View(model);
         }
+
         [HttpGet]
         public async Task<IActionResult> ActiveSessions()
         {
