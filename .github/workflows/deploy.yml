@@ -29,11 +29,10 @@ jobs:
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
         local-dir: ./publish-output/
-        server-dir: ./
-        dangerous-clean-slate: false # رفع التعديلات فقط بدلاً من إعادة الرفع من الصفر
+        server-dir: site/wwwroot/
+        dangerous-clean-slate: false
         dry-run: false
         exclude: |
           **/.git*
           **/.git*/**
-          **/appsettings.json
           **/appsettings.Development.json
