@@ -3,7 +3,7 @@ name: Deploy to MonsterASP via FTP
 on:
   push:
     branches:
-      - main
+      - main # الفرع الرئيسي الخاص بك
 
 jobs:
   build-and-deploy:
@@ -16,7 +16,13 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0.x'
+        dotnet-version: '8.0.x' # إصدار الدوت نت للمشروع
+
+    - name: Restore Dependencies
+      run: dotnet restore
+
+    - name: Build Project
+      run: dotnet build --configuration Release --no-restore
 
     - name: Publish App
       run: dotnet publish -c Release -o ./publish-output
@@ -29,5 +35,5 @@ jobs:
         password: ${{ secrets.FTP_PASSWORD }}
         local-dir: ./publish-output/
         server-dir: ./
-        dangerous-clean-slate: false
+        dangerous-clean-slate: true
         dry-run: false
