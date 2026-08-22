@@ -5,36 +5,94 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - بلايستيشن مانجر</title>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.rtl.min.css" />
+    <!-- Bootstrap RTL & FontAwesome -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    <style>
+        body {
+            overflow-x: hidden;
+            background-color: #f8fafc;
+        }
+
+        /* تثبيت عرض السايدبار وإلغاء إخفاء الـ Offcanvas على الشاشات الكبيرة */
+        @@media (min-width: 992px) {
+            .app-sidebar {
+                width: 260px !important;
+                min-width: 260px !important;
+                max-width: 260px !important;
+                height: 100vh;
+                position: sticky;
+                top: 0;
+                z-index: 1020;
+            }
+
+            #sidebarMenu.offcanvas-lg {
+                visibility: visible !important;
+                transform: none !important;
+                display: flex !important;
+            }
+        }
+    </style>
 </head>
-<body class="bg-light">
+<body>
 
-    <!-- Layout Wrapper (Flexbox) -->
-    <div class="d-flex">
+    <div class="d-flex min-vh-100">
 
-        <!-- 1. الـ Sidebar الجانبي -->
-        <partial name="PartialsView/_LayoutSidebar" />
+        <!-- 1. استدعاء السايدبار -->
+        <div class="app-sidebar">
+            <partial name="PartialsView/_LayoutSidebar" />
+        </div>
 
-        <!-- 2. منطقة المحتوى الرئيسي + Header علوي بسيط -->
-        <div class="w-100 d-flex flex-column min-vh-100">
+        <!-- 2. منطقة العمل الرئيسية (النافبار + المحتوى) -->
+        <div class="d-flex flex-column flex-grow-1 w-100" style="min-width: 0;">
 
-            <!-- (اختياري) Header مصغر أعلى المحتوى -->
+            <!-- الهيدر والنافبار العلوي -->
             <partial name="PartialsView/_layoutHeader" />
 
             <!-- محتوى الصفحات المتغير -->
-            <main role="main" class="flex-grow-1 p-4">
+            <main role="main" class="p-3 p-md-4 flex-grow-1">
                 @RenderBody()
             </main>
 
-            <!-- الـ Footer -->
+            <!-- الفوتر -->
             <partial name="PartialsView/_LayoutFooter" />
         </div>
 
     </div>
 
+    <!-- السكربتات الأساسية -->
     <partial name="PartialsView/_LayoutScripts" />
+    <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
+
+    <script>
+        function resetSidebarOnDesktop() {
+            if (window.innerWidth >= 992) {
+                const sidebarEl = document.getElementById('sidebarMenu');
+                if (sidebarEl) {
+                    const bsOffcanvas = bootstrap.Offcanvas.getInstance(sidebarEl);
+                    if (bsOffcanvas) {
+                        bsOffcanvas.hide();
+                    }
+
+                    sidebarEl.classList.remove('hiding', 'showing', 'show');
+                    sidebarEl.removeAttribute('aria-hidden');
+                    sidebarEl.removeAttribute('aria-modal');
+                    sidebarEl.removeAttribute('role');
+                    sidebarEl.style.removeProperty('visibility');
+
+                    document.querySelectorAll('.offcanvas-backdrop').forEach(el => el.remove());
+                    document.body.style.removeProperty('overflow');
+                    document.body.style.removeProperty('padding-right');
+                }
+            }
+        }
+
+        window.addEventListener('resize', resetSidebarOnDesktop);
+        document.addEventListener('DOMContentLoaded', resetSidebarOnDesktop);
+    </script>
+
 </body>
 </html>

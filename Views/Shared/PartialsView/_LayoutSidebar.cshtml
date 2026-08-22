@@ -1,167 +1,181 @@
 ﻿@using System.Security.Claims
 
-<div class="sidebar d-flex flex-column justify-content-between p-3 text-white bg-dark shadow-sm border-start border-secondary border-opacity-25" style="width: 260px; height: 100vh; position: sticky; top: 0; overflow-y: auto;" dir="rtl">
+<!-- السايدبار متجاوبة: تظهر كـ Offcanvas على الموبايل وسايدبار عادية على الشاشات الكبيرة -->
+<div class="offcanvas-lg offcanvas-end bg-dark text-white shadow-sm border-start border-secondary border-opacity-25" tabindex="-1" id="sidebarMenu" aria-labelledby="sidebarMenuLabel" style="min-width: 260px; max-width: 280px;" dir="rtl">
 
-    <!-- Top Section (Brand + Links) -->
-    <div>
-        <!-- Header / Brand -->
-        <a asp-controller="Dashboard" asp-action="Index" class="d-flex align-items-center mb-3 text-warning text-decoration-none gap-2 px-2">
-            <i class="fa-solid fa-gamepad fa-2x"></i>
-            <span class="fs-5 fw-bold">بلايستيشن مانجر</span>
-        </a>
-
-        <!-- Shift Info Widget -->
-        <div class="bg-secondary bg-opacity-10 rounded-3 p-2 mb-3 border border-secondary border-opacity-25 text-center">
-            <div class="d-flex align-items-center justify-content-between mb-1 px-1">
-                <small class="text-white-50">الوردية الحالية</small>
-                <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 px-2 py-0.5 rounded-pill small">
-                    <i class="fa-solid fa-circle fa-beat me-1" style="font-size: 8px;"></i> شغالة
-                </span>
-            </div>
-            <div class="fw-bold text-light small text-truncate" title="@(User.FindFirst("FullName")?.Value ?? User.Identity?.Name)">
-                @(User.FindFirst("FullName")?.Value ?? User.Identity?.Name ?? "غير مسجل")
-            </div>
-        </div>
-
-        <!-- Navigation Links -->
-        <ul class="nav nav-pills flex-column gap-1 mb-3">
-            <li class="nav-item">
-                <a asp-controller="Device" asp-action="Index" class="nav-link text-white active d-flex align-items-center gap-2 py-2">
-                    <i class="fa-solid fa-gauge-high text-info" style="width: 22px;"></i>
-                    <span>لوحة الشاشات</span>
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a asp-controller="Session" asp-action="ActiveSessions" class="nav-link text-white-50 d-flex align-items-center gap-2 py-2">
-                    <i class="fa-solid fa-clock text-success" style="width: 22px;"></i>
-                    <span>الجلسات المفتوحة</span>
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a asp-controller="Device" asp-action="GetPricing" class="nav-link text-white-50 d-flex align-items-center gap-2 py-2">
-                    <i class="fa-solid fa-tv text-warning" style="width: 22px;"></i>
-                    <span>الأجهزة والأسعار</span>
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a asp-controller="Drink" asp-action="Index" class="nav-link text-white-50 d-flex align-items-center gap-2 py-2">
-                    <i class="fa-solid fa-mug-hot text-danger" style="width: 22px;"></i>
-                    <span>المشروبات والمخزن</span>
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a asp-controller="Admin" asp-action="GetAllCustomers" class="nav-link text-white-50 d-flex align-items-center gap-2 py-2">
-                    <i class="fa-solid fa-users text-primary" style="width: 22px;"></i>
-                    <span>العملاء والديون</span>
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a asp-controller="Shift" asp-action="GetReporet" class="nav-link text-white-50 d-flex align-items-center gap-2 py-2">
-                    <i class="fa-solid fa-cash-register text-info" style="width: 22px;"></i>
-                    <span>الورديات والتقارير</span>
-                </a>
-            </li>
-
-            <!-- قسم إدارة الحسابات (يظهر للمدير والسوبر أدمن) -->
-            @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
-            {
-                <li class="border-top border-secondary border-opacity-25 pt-2 mt-2">
-                    <small class="text-white-50 px-2 d-block mb-1 fw-bold" style="font-size: 11px;">إدارة الصلاحيات</small>
-                </li>
-
-                <li class="nav-item">
-                    <a asp-controller="Admin" asp-action="Index" class="nav-link text-white-50 d-flex align-items-center gap-2 py-2">
-                        <i class="fa-solid fa-users-gear text-warning" style="width: 22px;"></i>
-                        <span>إدارة الموظفين والأدوار</span>
-                    </a>
-                </li>
-            }
-
-            <!-- قسم خاص بالسوبر أدمن فقط (SuperAdmin) -->
-            @if (User.IsInRole("SuperAdmin"))
-            {
-                <li class="nav-item">
-                    <a asp-controller="Account" asp-action="CreateAdmin" class="nav-link text-warning d-flex align-items-center gap-2 py-2">
-                        <i class="fa-solid fa-user-plus text-warning" style="width: 22px;"></i>
-                        <span>إضافة مستخدم جديد</span>
-                    </a>
-                </li>
-            }
-        </ul>
+    <!-- رأس السايدبار (يظهر في الموبايل لإغلاق القائمة) -->
+    <div class="offcanvas-header d-lg-none border-bottom border-secondary border-opacity-25 py-3">
+        <h5 class="offcanvas-title text-warning d-flex align-items-center gap-2 fw-bold" id="sidebarMenuLabel">
+            <i class="fa-solid fa-gamepad"></i> بلايستيشن مانجر
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" data-bs-target="#sidebarMenu" aria-label="Close"></button>
     </div>
 
-    <!-- Bottom Section (User Profile & Actions) -->
-    <div class="pt-2 border-top border-secondary border-opacity-25">
-        <div class="dropdown">
-            <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle gap-2 p-1 rounded-3" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="fa-solid fa-circle-user fa-2x text-warning"></i>
-                <div class="overflow-hidden lh-sm">
-                    @if (User.Identity?.IsAuthenticated == true)
-                    {
-                        var fullName = User.FindFirst("FullName")?.Value ?? User.Identity.Name;
-                        var roleName = User.FindFirst(ClaimTypes.Role)?.Value ?? "موظف";
+    <!-- جسم السايدبار -->
+    <div class="offcanvas-body d-flex flex-column justify-content-between p-3" style="height: 100vh; overflow-y: auto;">
 
-                        <strong class="d-block small text-truncate" style="max-width: 140px;">@fullName</strong>
-                        <small class="text-white-50" style="font-size: 11px;">@roleName</small>
-                    }
-                    else
-                    {
-                        <strong class="d-block small">زائر</strong>
-                        <small class="text-white-50" style="font-size: 11px;">غير مسجل</small>
-                    }
-                </div>
+        <!-- Top Section (Brand + Links) -->
+        <div>
+            <!-- Header / Brand (للشاشات الكبيرة فقط) -->
+            <a asp-controller="Dashboard" asp-action="Index" class="d-none d-lg-flex align-items-center mb-3 text-warning text-decoration-none gap-2 px-2">
+                <i class="fa-solid fa-gamepad fa-2x"></i>
+                <span class="fs-5 fw-bold">بلايستيشن مانجر</span>
             </a>
 
-            <ul class="dropdown-menu dropdown-menu-dark shadow border-secondary border-opacity-25 text-end mb-2" aria-labelledby="dropdownUser1">
-                <li>
-                    <a class="dropdown-item text-danger d-flex align-items-center gap-2" asp-controller="Shift" asp-action="AddExpense">
-                        <i class="fa-solid fa-minus-circle"></i> تسجيل مصروف
-                    </a>
-                </li>
-                <li>
-                    <a class="dropdown-item text-warning d-flex align-items-center gap-2" asp-controller="Shift" asp-action="CloseShift">
-                        <i class="fa-solid fa-lock"></i> تقفيل الوردية
+            <!-- Shift Info Widget -->
+            <div class="bg-secondary bg-opacity-10 rounded-3 p-2 mb-3 border border-secondary border-opacity-25 text-center">
+                <div class="d-flex align-items-center justify-content-between mb-1 px-1">
+                    <small class="text-white-50">الوردية الحالية</small>
+                    <span class="badge bg-success bg-opacity-25 text-success border border-success border-opacity-50 px-2 py-0.5 rounded-pill small">
+                        <i class="fa-solid fa-circle fa-beat me-1" style="font-size: 8px;"></i> شغالة
+                    </span>
+                </div>
+                <div class="fw-bold text-light small text-truncate" title="@(User.FindFirst("FullName")?.Value ?? User.Identity?.Name)">
+                    @(User.FindFirst("FullName")?.Value ?? User.Identity?.Name ?? "غير مسجل")
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <ul class="nav nav-pills flex-column gap-1 mb-3">
+                <li class="nav-item">
+                    <a asp-controller="Device" asp-action="Index" class="nav-link text-white active d-flex align-items-center gap-2 py-2">
+                        <i class="fa-solid fa-gauge-high text-info" style="width: 22px;"></i>
+                        <span>لوحة الشاشات</span>
                     </a>
                 </li>
 
-                <!-- خيار سريع للسوبر أدمن داخل القائمة السفلية أيضاً -->
-                @if (User.IsInRole("SuperAdmin"))
+                <li class="nav-item">
+                    <a asp-controller="Session" asp-action="ActiveSessions" class="nav-link text-white-50 d-flex align-items-center gap-2 py-2">
+                        <i class="fa-solid fa-clock text-success" style="width: 22px;"></i>
+                        <span>الجلسات المفتوحة</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a asp-controller="Device" asp-action="GetPricing" class="nav-link text-white-50 d-flex align-items-center gap-2 py-2">
+                        <i class="fa-solid fa-tv text-warning" style="width: 22px;"></i>
+                        <span>الأجهزة والأسعار</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a asp-controller="Drink" asp-action="Index" class="nav-link text-white-50 d-flex align-items-center gap-2 py-2">
+                        <i class="fa-solid fa-mug-hot text-danger" style="width: 22px;"></i>
+                        <span>المشروبات والمخزن</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a asp-controller="Admin" asp-action="GetAllCustomers" class="nav-link text-white-50 d-flex align-items-center gap-2 py-2">
+                        <i class="fa-solid fa-users text-primary" style="width: 22px;"></i>
+                        <span>العملاء والديون</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a asp-controller="Shift" asp-action="GetReporet" class="nav-link text-white-50 d-flex align-items-center gap-2 py-2">
+                        <i class="fa-solid fa-cash-register text-info" style="width: 22px;"></i>
+                        <span>الورديات والتقارير</span>
+                    </a>
+                </li>
+
+                <!-- قسم إدارة الحسابات للمدير -->
+                @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
                 {
-                    <li>
-                        <a class="dropdown-item text-warning d-flex align-items-center gap-2" asp-controller="Account" asp-action="CreateAdmin">
-                            <i class="fa-solid fa-user-shield"></i> إنشاء حساب جديد
+                    <li class="border-top border-secondary border-opacity-25 pt-2 mt-2">
+                        <small class="text-white-50 px-2 d-block mb-1 fw-bold" style="font-size: 11px;">إدارة الصلاحيات</small>
+                    </li>
+
+                    <li class="nav-item">
+                        <a asp-controller="Admin" asp-action="Index" class="nav-link text-white-50 d-flex align-items-center gap-2 py-2">
+                            <i class="fa-solid fa-users-gear text-warning" style="width: 22px;"></i>
+                            <span>إدارة الموظفين والأدوار</span>
                         </a>
                     </li>
                 }
 
-                @if (User.Identity?.IsAuthenticated == true)
+                <!-- قسم خاص بالسوبر أدمن لإدارة الفروع والاشتراكات -->
+                @if (User.IsInRole("SuperAdmin"))
                 {
-                    <li><hr class="dropdown-divider border-secondary border-opacity-25"></li>
-                    <li>
-                        <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline w-100">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="dropdown-item text-white-50 d-flex align-items-center gap-2 w-100 border-0 bg-transparent">
-                                <i class="fa-solid fa-right-from-bracket text-danger"></i> تسجيل الخروج
-                            </button>
-                        </form>
+                    <li class="border-top border-secondary border-opacity-25 pt-2 mt-2">
+                        <small class="text-warning px-2 d-block mb-1 fw-bold" style="font-size: 11px;">إدارة الفروع والاشتراكات</small>
                     </li>
-                }
-                else
-                {
-                    <li><hr class="dropdown-divider border-secondary border-opacity-25"></li>
-                    <li>
-                        <a class="dropdown-item text-info d-flex align-items-center gap-2" asp-controller="Account" asp-action="Login">
-                            <i class="fa-solid fa-right-to-bracket"></i> تسجيل الدخول
+
+                    <li class="nav-item">
+                        <a asp-controller="TenantManagement" asp-action="Create" class="nav-link text-warning d-flex align-items-center gap-2 py-2">
+                            <i class="fa-solid fa-user-plus text-warning" style="width: 22px;"></i>
+                            <span>إضافة فرع / أدمن جديد</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a asp-controller="AdminManagement" asp-action="Index" class="nav-link text-white-50 d-flex align-items-center gap-2 py-2">
+                            <i class="fa-solid fa-users-rectangle text-info" style="width: 22px;"></i>
+                            <span>إدارة اشتراكات الفروع</span>
                         </a>
                     </li>
                 }
             </ul>
         </div>
-    </div>
 
+        <!-- Bottom Section (User Profile & Actions) -->
+        <div class="pt-2 border-top border-secondary border-opacity-25">
+            <div class="dropup">
+                <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle gap-2 p-1 rounded-3" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fa-solid fa-circle-user fa-2x text-warning"></i>
+                    <div class="overflow-hidden lh-sm">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            var fullName = User.FindFirst("FullName")?.Value ?? User.Identity.Name;
+                            var roleName = User.FindFirst(ClaimTypes.Role)?.Value ?? "موظف";
+
+                            <strong class="d-block small text-truncate" style="max-width: 140px;">@fullName</strong>
+                            <small class="text-white-50" style="font-size: 11px;">@roleName</small>
+                        }
+                        else
+                        {
+                            <strong class="d-block small">زائر</strong>
+                            <small class="text-white-50" style="font-size: 11px;">غير مسجل</small>
+                        }
+                    </div>
+                </a>
+
+                <ul class="dropdown-menu dropdown-menu-dark shadow border-secondary border-opacity-25 text-end mb-2" aria-labelledby="dropdownUser1">
+                    <li>
+                        <a class="dropdown-item text-danger d-flex align-items-center gap-2" asp-controller="Shift" asp-action="AddExpense">
+                            <i class="fa-solid fa-minus-circle"></i> تسجيل مصروف
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item text-warning d-flex align-items-center gap-2" asp-controller="Shift" asp-action="CloseShift">
+                            <i class="fa-solid fa-lock"></i> تقفيل الوردية
+                        </a>
+                    </li>
+
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <li><hr class="dropdown-divider border-secondary border-opacity-25"></li>
+                        <li>
+                            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline w-100">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="dropdown-item text-white-50 d-flex align-items-center gap-2 w-100 border-0 bg-transparent">
+                                    <i class="fa-solid fa-right-from-bracket text-danger"></i> تسجيل الخروج
+                                </button>
+                            </form>
+                        </li>
+                    }
+                    else
+                    {
+                        <li><hr class="dropdown-divider border-secondary border-opacity-25"></li>
+                        <li>
+                            <a class="dropdown-item text-info d-flex align-items-center gap-2" asp-controller="Account" asp-action="Login">
+                                <i class="fa-solid fa-right-to-bracket"></i> تسجيل الدخول
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+
+    </div>
 </div>

@@ -2,83 +2,115 @@
 
 @{
     ViewData["Title"] = "تسجيل الدخول";
-    Layout = "_Layout"; // أو اتركها بدون Layout لو دي صفحة منفصلة
+    Layout = null;
 }
 
-<div class="container py-5" dir="rtl">
-    <div class="row justify-content-center align-items-center min-vh-75">
-        <div class="col-md-6 col-lg-5 col-xl-4">
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>@ViewData["Title"] - بلايستيشن مانجر</title>
 
-            <!-- Logo / Brand Header -->
-            <div class="text-center mb-4">
-                <div class="bg-primary bg-gradient text-white d-inline-flex align-items-center justify-content-center rounded-circle shadow mb-3" style="width: 70px; height: 70px;">
-                    <i class="fa-solid fa-gamepad fa-2x"></i>
+    <!-- Bootstrap RTL & FontAwesome -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+    <style>
+        body {
+            background-color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            overflow-x: hidden;
+        }
+
+        .login-card {
+            border: none;
+            border-radius: 1.25rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        }
+
+        .form-control:focus {
+            box-shadow: none;
+            border-color: #0d6efd;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container px-3 py-4">
+        <div class="row justify-content-center">
+            <div class="col-12 col-sm-10 col-md-8 col-lg-5 col-xl-4">
+
+                <!-- Logo Header -->
+                <div class="text-center mb-4">
+                    <div class="bg-primary text-white d-inline-flex align-items-center justify-content-center rounded-circle shadow-sm mb-3" style="width: 65px; height: 65px;">
+                        <i class="fa-solid fa-gamepad fa-2x"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-1">بلايستيشن مانجر</h4>
+                    <p class="text-muted small">سجل دخولك لبدء الوردية والتحكم في الأجهزة</p>
                 </div>
-                <h3 class="fw-bold text-dark">بلايستيشن مانجر</h3>
-                <p class="text-muted small">سجل دخولك لبدء الوردية والتحكم في الأجهزة</p>
-            </div>
 
-            <!-- Card -->
-            <div class="card border-0 shadow-lg rounded-4">
-                <div class="card-body p-4">
+                <!-- Login Card -->
+                <div class="card login-card bg-white p-3 p-sm-4">
+                    <div class="card-body p-0">
+                        <form asp-action="Login" method="post">
+                            @Html.AntiForgeryToken()
 
-                    <form asp-action="Login" method="post">
-                        @Html.AntiForgeryToken()
+                            <div asp-validation-summary="ModelOnly" class="alert alert-danger p-2 small mb-3 text-center" role="alert"></div>
 
-                        <!-- Validation Summary for General Errors -->
-                        <div asp-validation-summary="ModelOnly" class="alert alert-danger p-2 small mb-3 text-center" role="alert"></div>
-
-                        <!-- Username Input -->
-                        <div class="mb-3">
-                            <label asp-for="UserName" class="form-label fw-bold small">اسم المستخدم</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-user text-muted"></i></span>
-                                <input asp-for="UserName" class="form-control border-start-0 ps-0" placeholder="أدخل اسم المستخدم" required autofocus />
+                            <!-- Username -->
+                            <div class="mb-3">
+                                <label asp-for="UserName" class="form-label fw-bold small">اسم المستخدم</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-user text-muted"></i></span>
+                                    <input asp-for="UserName" class="form-control border-start-0 ps-0" placeholder="أدخل اسم المستخدم" required autofocus />
+                                </div>
+                                <span asp-validation-for="UserName" class="text-danger small d-block mt-1"></span>
                             </div>
-                            <span asp-validation-for="UserName" class="text-danger small d-block mt-1"></span>
-                        </div>
 
-                        <!-- Password Input -->
-                        <div class="mb-3">
-                            <label asp-for="Password" class="form-label fw-bold small">كلمة المرور</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-lock text-muted"></i></span>
-                                <input asp-for="Password" type="password" class="form-control border-start-0 ps-0" placeholder="••••••••" required />
+                            <!-- Password -->
+                            <div class="mb-3">
+                                <label asp-for="Password" class="form-label fw-bold small">كلمة المرور</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-lock text-muted"></i></span>
+                                    <input asp-for="Password" type="password" class="form-control border-start-0 ps-0" placeholder="••••••••" required />
+                                </div>
+                                <span asp-validation-for="Password" class="text-danger small d-block mt-1"></span>
                             </div>
-                            <span asp-validation-for="Password" class="text-danger small d-block mt-1"></span>
-                        </div>
 
-                        <!-- Remember Me -->
-                        <div class="mb-4 d-flex align-items-center justify-content-between">
-                            <div class="form-check">
-                                <input asp-for="RememberMe" class="form-check-input" type="checkbox" id="rememberMeCheck" />
-                                <label class="form-check-label small fw-semibold text-secondary" for="rememberMeCheck">
-                                    تذكرني على هذا الجهاز
-                                </label>
+                            <!-- Remember Me -->
+                            <div class="mb-4 d-flex align-items-center justify-content-between">
+                                <div class="form-check">
+                                    <input asp-for="RememberMe" class="form-check-input" type="checkbox" id="rememberMeCheck" />
+                                    <label class="form-check-label small fw-semibold text-secondary" for="rememberMeCheck">
+                                        تذكرني على هذا الجهاز
+                                    </label>
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- Submit Button -->
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm">
-                                <i class="fa-solid fa-right-to-bracket me-2"></i> دخول للسيستم
-                            </button>
-                        </div>
-
-                    </form>
-
+                            <!-- Submit Button -->
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary py-2 rounded-pill fw-bold shadow-sm">
+                                    <i class="fa-solid fa-right-to-bracket me-2"></i> دخول للسيستم
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-            </div>
 
-            <!-- Footer Note -->
-            <div class="text-center mt-4">
-                <p class="text-muted small">© @DateTime.Now.Year جميع الحقوق محفوظة - نظام إدارة البلايستيشن</p>
-            </div>
+                <!-- Footer -->
+                <div class="text-center mt-4">
+                    <p class="text-muted small mb-0">© 2026 جميع الحقوق محفوظة - نظام إدارة البلايستيشن</p>
+                </div>
 
+            </div>
         </div>
     </div>
-</div>
 
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

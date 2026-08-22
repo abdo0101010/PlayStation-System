@@ -1,43 +1,45 @@
 ﻿<header dir="rtl">
-    <nav class="navbar navbar-dark bg-dark bg-opacity-95 shadow-sm px-4 py-2 sticky-top border-bottom border-secondary border-opacity-25">
-        <div class="container-fluid d-flex justify-content-between align-items-center">
+    <nav class="navbar navbar-dark bg-dark bg-opacity-95 shadow-sm px-2 px-md-4 py-2 sticky-top border-bottom border-secondary border-opacity-25">
+        <div class="container-fluid d-flex justify-content-between align-items-center flex-nowrap">
 
-            <!-- عنوان الصفحة أو مسار سريع -->
-            <div class="d-flex align-items-center gap-3">
-                <button class="btn btn-outline-secondary btn-sm d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
-                    <i class="fa-solid fa-bars"></i>
-                </button>
-                <h6 class="mb-0 text-white-50 fw-normal">لوحة التشغيل اليومية</h6>
-            </div>
-
-            <!-- الإجراءات السريعة وحالة الوردية -->
-            <div class="d-flex align-items-center gap-3">
-
-                <!-- زر تسجيل مصروف سريع -->
-                <a asp-controller="Shift" asp-action="AddExpense" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-semibold">
-                    <i class="fa-solid fa-minus-circle me-1"></i> تسجيل مصروف
-                </a>
-
-                <!-- بطاقة حالة الوردية -->
-                <div class="bg-dark border border-success border-opacity-50 rounded-pill px-3 py-1 d-flex align-items-center gap-2 shadow-sm text-nowrap">
-                    <span class="spinner-grow spinner-grow-sm text-success" style="width: 0.5rem; height: 0.5rem;" role="status"></span>
-                    <span class="text-white-50 small">الوردية:</span>
-                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2 py-0.5 fw-semibold small">
-                        نشطة
-                    </span>
-                </div>
-
-                <!-- قائمة المستخدم والتقفيل -->
+            <!-- القائمة الجانبية والعنوان -->
+            <div class="d-flex align-items-center gap-2">
                 @if (User.Identity != null && User.Identity.IsAuthenticated)
                 {
-                    <!-- يظهر فقط للمستخدم المسجل دخوله -->
-                    <a asp-controller="Shift" asp-action="AddExpense" class="btn btn-outline-danger btn-sm rounded-pill">
-                        <i class="fa-solid fa-minus-circle me-1"></i> تسجيل مصروف
+                    <button class="btn btn-outline-secondary btn-sm d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu" aria-label="Toggle navigation">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                }
+                <h6 class="mb-0 text-white fw-semibold text-truncate" style="max-width: 140px; font-size: 0.9rem;">
+                    <i class="fa-solid fa-gamepad text-primary me-1 d-none d-sm-inline"></i> لوحة التشغيل
+                </h6>
+            </div>
+
+            <!-- الإجراءات السريعة وحالة المستخدم -->
+            <div class="d-flex align-items-center gap-2">
+
+                @if (User.Identity != null && User.Identity.IsAuthenticated)
+                {
+                    <!-- بطاقة حالة الوردية -->
+                    <div class="bg-dark border border-success border-opacity-50 rounded-pill px-2 px-sm-3 py-1 d-flex align-items-center gap-1 gap-sm-2 shadow-sm text-nowrap">
+                        <span class="spinner-grow spinner-grow-sm text-success" style="width: 0.45rem; height: 0.45rem;" role="status"></span>
+                        <span class="text-white-50 small d-none d-sm-inline" style="font-size: 0.8rem;">الوردية:</span>
+                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2 py-0.5 fw-semibold" style="font-size: 0.75rem;">
+                            نشطة
+                        </span>
+                    </div>
+
+                    <!-- زر تسجيل مصروف سريع -->
+                    <a asp-controller="Shift" asp-action="AddExpense" class="btn btn-sm btn-outline-danger rounded-pill px-2 px-sm-3 fw-semibold text-nowrap">
+                        <i class="fa-solid fa-minus-circle"></i>
+                        <span class="d-none d-md-inline ms-1">تسجيل مصروف</span>
                     </a>
 
-                    <div class="dropdown d-inline-block ms-2">
-                        <button class="btn btn-warning rounded-pill dropdown-toggle fw-bold text-dark px-3" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fa-solid fa-user-circle me-1"></i> @(User.FindFirst("FullName")?.Value ?? User.Identity.Name ?? "حسابي")
+                    <!-- قائمة المستخدم والتقفيل -->
+                    <div class="dropdown">
+                        <button class="btn btn-warning btn-sm rounded-pill dropdown-toggle fw-bold text-dark px-2 px-sm-3" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fa-solid fa-user-circle"></i>
+                            <span class="d-none d-sm-inline ms-1">@(User.FindFirst("FullName")?.Value ?? User.Identity.Name ?? "حسابي")</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end shadow border-0 text-end" aria-labelledby="userMenu">
                             <li>
@@ -47,7 +49,7 @@
                             </li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
-                                <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                <form asp-controller="Account" asp-action="Logout" method="post" class="m-0 p-0">
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="dropdown-item text-danger fw-bold">
                                         <i class="fa-solid fa-arrow-right-from-bracket text-danger me-2"></i> تسجيل الخروج
@@ -60,10 +62,12 @@
                 else
                 {
                     <!-- يظهر فقط للزائر غير المسجل -->
-                    <a asp-controller="Account" asp-action="Login" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
+                    <a asp-controller="Account" asp-action="Login" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-sm text-nowrap">
                         <i class="fa-solid fa-arrow-right-to-bracket me-1"></i> تسجيل الدخول
                     </a>
                 }
+
+            </div>
 
         </div>
     </nav>
