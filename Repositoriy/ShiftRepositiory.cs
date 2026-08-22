@@ -4,53 +4,63 @@ using PlaystationSystem.ViewModel;
 
 namespace PlaystationSystem.Repositoriy
 {
-    public class ShiftRepositiory:IShiftRepositiory
+    public class ShiftRepositiory : IShiftRepositiory
     {
         private readonly ApplicationDbContext _context;
+        private readonly ICurrentTenantRepositoriy _currentTenantRepository;
 
-        public ShiftRepositiory(ApplicationDbContext context)
+        public ShiftRepositiory(ApplicationDbContext context, ICurrentTenantRepositoriy currentTenantRepository)
         {
             _context = context;
-            
+            _currentTenantRepository = currentTenantRepository;
         }
-        public async Task<List< Shifts>> GetDescShift()
-        {
-            var shifts = await _context.Shifts
-        .Include(s => s.User)
-        .OrderByDescending(s => s.StartTime)
-        .ToListAsync();
-            return shifts;
 
-        }
-        public async Task<Shifts?> GetActiveShiftAsync()
+        public async Task<List<Shifts>> GetDescShift()
         {
-            // يرمي Exception لو تم العثور على أكثر من وردية مفتوحة في قاعدة البيانات بسبب خطأ ما
+            var currentTenantId = _currentTenantRepository.TenantId;
+            var isSuperAdmin = _currentTenantRepository.IsSuperAdmin;
+
             return await _context.Shifts
                 .Include(s => s.User)
-                .SingleOrDefaultAsync(s => s.IsOpen);
+                .Where(s => isSuperAdmin || (s.TenantId == currentTenantId && !string.IsNullOrEmpty(currentTenantId)))
+                .OrderByDescending(s => s.StartTime)
+                .ToListAsync();
         }
+
+        public async Task<Shifts?> GetActiveShiftAsync()
+        {
+            var currentTenantId = _currentTenantRepository.TenantId;
+            var isSuperAdmin = _currentTenantRepository.IsSuperAdmin;
+
+            return await _context.Shifts
+                .Include(s => s.User)
+                .SingleOrDefaultAsync(s => s.IsOpen && (isSuperAdmin || s.TenantId == currentTenantId));
+        }
+
         public async Task<CloseShiftViewModel> PrepareCloseShiftSummaryAsync(Shifts activeShift, string cashierName)
         {
             var startTime = activeShift.StartTime;
+            var currentTenantId = _currentTenantRepository.TenantId;
+            var isSuperAdmin = _currentTenantRepository.IsSuperAdmin;
 
-            // 1. حساب إيراد أجهزة البلايستيشن (الجلسات المنتهية خلال فترة الوردية)
+            // 1. حساب إيراد أجهزة البلايستيشن لنفس الفرع
             decimal gamingIncome = await _context.Sessions
-                .Where(s => !s.IsOpen && s.EndTime >= startTime)
+                .Where(s => !s.IsOpen && s.EndTime >= startTime && (isSuperAdmin || s.TenantId == currentTenantId))
                 .SumAsync(s => (decimal?)s.TotalAmount) ?? 0;
 
-            // 2. حساب مبيعات البوفيه (الطلبات التابعة للجلسات المنتهية خلال الوردية)
+            // 2. حساب مبيعات البوفيه لنفس الفرع
             decimal buffetIncome = await _context.SessionOrders
-                .Where(o => !o.Session.IsOpen && o.Session.EndTime >= startTime)
+                .Where(o => !o.Session.IsOpen && o.Session.EndTime >= startTime && (isSuperAdmin || o.Session.TenantId == currentTenantId))
                 .SumAsync(o => (decimal?)(o.Quantity * o.UnitPrice)) ?? 0;
 
-
+            // 3. حساب الديون المحصلة لنفس الفرع
             decimal debtCollected = await _context.DebtPayments
-        .Where(p => p.PaymentDate >= startTime || p.ShiftId == activeShift.Id)
-        .SumAsync(p => (decimal?)p.Amount) ?? 0;
+                .Where(p => (p.PaymentDate >= startTime || p.ShiftId == activeShift.Id) && (isSuperAdmin || p.TenantId == currentTenantId))
+                .SumAsync(p => (decimal?)p.Amount) ?? 0;
 
-            // 4. حساب المصروفات النثرية
+            // 4. حساب المصروفات النثرية لنفس الفرع
             decimal totalExpenses = await _context.Expenses
-                .Where(e => e.CreatedAt >= startTime || e.ShiftId == activeShift.Id)
+                .Where(e => (e.CreatedAt >= startTime || e.ShiftId == activeShift.Id) && (isSuperAdmin || e.TenantId == currentTenantId))
                 .SumAsync(e => (decimal?)e.Amount) ?? 0;
 
             // حساب الإجمالي المفترض في الدرج
@@ -66,10 +76,9 @@ namespace PlaystationSystem.Repositoriy
                 TotalBuffetIncome = buffetIncome,
                 TotalDebtCollected = debtCollected,
                 TotalExpenses = totalExpenses,
-                   ActualCash= expectedCash,
+                ActualCash = expectedCash,
                 Notes = activeShift.Notes
             };
         }
-
     }
 }
