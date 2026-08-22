@@ -101,7 +101,7 @@ namespace PlaystationSystem.Controllers
                 CustomerId = model.CustomerId,
                 ShiftId = activeShift.Id,
                 UserId = currentUserId,
-                StartTime = DateTime.UtcNow,
+                StartTime = DateTime.Now,
                 IsOpen = true,
                 Mode = model.Mode,
                 SessionType = model.SessionType,
@@ -281,7 +281,7 @@ namespace PlaystationSystem.Controllers
             }
 
             TempData["SuccessMessage"] = $"تم إنهاء جلسة {device?.Name} بنجاح. إجمالي الحساب: {session.TotalAmount:0.00} ج.م";
-            return RedirectToAction("Index", "Dashboard");
+            return RedirectToAction("Index", "home");
         }
 
         [HttpGet]
