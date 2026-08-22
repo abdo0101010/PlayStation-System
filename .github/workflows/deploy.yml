@@ -22,7 +22,24 @@ jobs:
       run: |
         dotnet publish -c Release -o ./publish-output /p:DebugType=None /p:DebugSymbols=false
 
-    - name: Sync Files via FTP (Fast Incremental Sync)
+    # 1. إنشاء ملف app_offline لإيقاف الـ IIS مؤقتاً وفك قفل ملفات الـ DLL
+    - name: Take App Offline
+      run: |
+        mkdir -p ./offline-temp
+        echo "<h1>Site is updating, please wait a moment...</h1>" > ./offline-temp/app_offline.htm
+
+    - name: Upload app_offline.htm
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: ./offline-temp/
+        server-dir: wwwroot/
+        dangerous-clean-slate: false
+
+    # 2. رفع ملفات المشروع بعد تحرير القفل
+    - name: Sync Files via FTP
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
         server: ${{ secrets.FTP_SERVER }}
@@ -36,3 +53,17 @@ jobs:
           **/.git*
           **/.git*/**
           **/appsettings.Development.json
+
+    # 3. إيقاف وضع الـ Offline وإعادة تشغيل الموقع
+    - name: Bring App Online (Delete app_offline.htm)
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        local-dir: ./offline-temp/
+        server-dir: wwwroot/
+        dangerous-clean-slate: false
+        dry-run: false
+        exclude: |
+          **/*
