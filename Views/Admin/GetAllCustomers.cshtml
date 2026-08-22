@@ -101,18 +101,33 @@
                                             <a asp-action="Details" asp-route-id="@customer.Id" class="btn btn-sm btn-outline-info rounded-circle" title="كشف الحساب">
                                                 <i class="fa-solid fa-file-invoice"></i>
                                             </a>
+
                                             <!-- سداد دين -->
                                             <a asp-action="PayDebt" asp-route-id="@customer.Id" class="btn btn-sm btn-outline-success rounded-circle" title="سداد نقدية">
                                                 <i class="fa-solid fa-hand-holding-dollar"></i>
                                             </a>
+
                                             <!-- تعديل -->
                                             <a asp-action="EditCustomer" asp-route-id="@customer.Id" class="btn btn-sm btn-outline-primary rounded-circle" title="تعديل">
                                                 <i class="fa-solid fa-pen-to-square"></i>
                                             </a>
-                                            <!-- حذف -->
-                                            <a asp-action="DeleteCustomer" asp-route-id="@customer.Id" class="btn btn-sm btn-outline-danger rounded-circle" title="حذف">
-                                                <i class="fa-solid fa-trash-can"></i>
-                                            </a>
+
+                                            <!-- حذف (متاح للمدير، ومعطل للكاشير) -->
+                                            @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+                                            {
+                                                <form asp-action="DeleteCustomer" asp-route-id="@customer.Id" method="post" class="d-inline" onsubmit="return confirm('هل أنت متأكد من حذف هذا العميل؟');">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle" title="حذف العميل">
+                                                        <i class="fa-solid fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-circle opacity-50" disabled title="غير مسموح للكاشير بحذف العملاء (خاص بالمدير)">
+                                                    <i class="fa-solid fa-ban text-danger"></i>
+                                                </button>
+                                            }
                                         </div>
                                     </td>
                                 </tr>

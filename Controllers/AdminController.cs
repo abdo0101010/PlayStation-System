@@ -9,7 +9,7 @@ using PlaystationSystem.ViewModel;
 
 namespace PlaystationSystem.Controllers
 {
-    [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize] // متاح لجميع الأدوار المسجلة (Admin, SuperAdmin, Cashier)
     public class AdminController : Controller
     {
         private readonly IAdminServices _adminServices;
@@ -35,13 +35,26 @@ namespace PlaystationSystem.Controllers
             _currentTenantService = currentTenantService;
         }
 
+        private async Task<string> GetCurrentTenantIdAsync()
+        {
+            var tenantId = _currentTenantService.TenantId;
+            if (string.IsNullOrEmpty(tenantId))
+            {
+                var user = await _userManager.GetUserAsync(User);
+                tenantId = user?.TenantId ?? string.Empty;
+            }
+            return tenantId;
+        }
+
+        // ======================== إدارة الموظفين (خاص بالمدير فقط) ========================
+
         [HttpGet]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<IActionResult> Index()
         {
-            var currentTenantId = _currentTenantService.TenantId;
+            var currentTenantId = await GetCurrentTenantIdAsync();
             var isSuperAdmin = _currentTenantService.IsSuperAdmin;
 
-            // جلب الموظفين التابعين لنفس المحل فقط (أو الكل إذا كان سوبر أدمن)
             var usersQuery = _userManager.Users.AsQueryable();
             if (!isSuperAdmin)
             {
@@ -58,31 +71,39 @@ namespace PlaystationSystem.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         public IActionResult CreateUser()
         {
-            return View();
+            var model = new RegisterViewModel();
+            return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateUser(ApplicationUser user, string password, string selectedRole)
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        public async Task<IActionResult> CreateUser(RegisterViewModel model)
         {
-            ModelState.Remove(nameof(user.TenantId));
-
             if (ModelState.IsValid)
             {
-                // ربط الموظف بمحل الأدمن الحالي
-                user.TenantId = _currentTenantService.TenantId;
-                user.IsActive = true;
-                user.EmailConfirmed = true;
+                var tenantId = await GetCurrentTenantIdAsync();
 
-                var result = await _userManager.CreateAsync(user, password);
+                var user = new ApplicationUser
+                {
+                    UserName = model.UserName,
+                    Email = model.Email,
+                    FullName = model.FullName,
+                    PhoneNumber = model.PhoneNumber,
+                    TenantId = tenantId,
+                    IsActive = true,
+                    EmailConfirmed = true
+                };
+
+                var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
-                    var role = string.IsNullOrEmpty(selectedRole) ? "Cashier" : selectedRole;
-                    await _userManager.AddToRoleAsync(user, role);
+                    await _userManager.AddToRoleAsync(user, "Cashier");
 
-                    TempData["SuccessMessage"] = "تم إضافة المستخدم بنجاح.";
+                    TempData["SuccessMessage"] = "تم إضافة الكاشير بنجاح.";
                     return RedirectToAction(nameof(Index));
                 }
 
@@ -92,11 +113,12 @@ namespace PlaystationSystem.Controllers
                 }
             }
 
-            return View(user);
+            return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<IActionResult> DeleteUser(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
@@ -105,8 +127,8 @@ namespace PlaystationSystem.Controllers
                 return NotFound();
             }
 
-            // التحقق من أن المستخدم يتبع نفس المحل
-            if (!_currentTenantService.IsSuperAdmin && user.TenantId != _currentTenantService.TenantId)
+            var currentTenantId = await GetCurrentTenantIdAsync();
+            if (!_currentTenantService.IsSuperAdmin && user.TenantId != currentTenantId)
             {
                 return Forbid();
             }
@@ -117,6 +139,7 @@ namespace PlaystationSystem.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<IActionResult> EditUser(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
@@ -125,7 +148,8 @@ namespace PlaystationSystem.Controllers
                 return NotFound();
             }
 
-            if (!_currentTenantService.IsSuperAdmin && user.TenantId != _currentTenantService.TenantId)
+            var currentTenantId = await GetCurrentTenantIdAsync();
+            if (!_currentTenantService.IsSuperAdmin && user.TenantId != currentTenantId)
             {
                 return Forbid();
             }
@@ -135,6 +159,7 @@ namespace PlaystationSystem.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<IActionResult> EditUser(string id, ApplicationUser model)
         {
             var existingUser = await _userManager.FindByIdAsync(id);
@@ -143,7 +168,8 @@ namespace PlaystationSystem.Controllers
                 return NotFound();
             }
 
-            if (!_currentTenantService.IsSuperAdmin && existingUser.TenantId != _currentTenantService.TenantId)
+            var currentTenantId = await GetCurrentTenantIdAsync();
+            if (!_currentTenantService.IsSuperAdmin && existingUser.TenantId != currentTenantId)
             {
                 return Forbid();
             }
@@ -175,6 +201,7 @@ namespace PlaystationSystem.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin,SuperAdmin")]
         public async Task<IActionResult> GetDetailsForUser(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
@@ -186,7 +213,7 @@ namespace PlaystationSystem.Controllers
             return View(user);
         }
 
-        // ======================== إدارة العملاء والمديونيات ========================
+        // ======================== إدارة العملاء والمديونيات (متاحة للكاشير والأدمن) ========================
 
         [HttpGet]
         public async Task<IActionResult> GetAllCustomers()
@@ -222,7 +249,7 @@ namespace PlaystationSystem.Controllers
             {
                 if (string.IsNullOrEmpty(customer.TenantId))
                 {
-                    customer.TenantId = _currentTenantService.TenantId ?? string.Empty;
+                    customer.TenantId = await GetCurrentTenantIdAsync();
                 }
 
                 await _customerRepository.AddAsync(customer);
@@ -341,30 +368,28 @@ namespace PlaystationSystem.Controllers
             var customer = await _customerRepository.GetByIdAsync(customerId);
             if (customer == null) return NotFound();
 
-            // 1. خصم المبلغ من دين العميل
+            var tenantId = await GetCurrentTenantIdAsync();
+
             customer.Debt -= amountPaid;
             if (customer.Debt < 0) customer.Debt = 0;
 
             await _customerRepository.Update(customer);
             await _customerRepository.SaveChangesAsync();
 
-            // 2. جلب الوردية المفتوحة التابعة لنفس المحل
-            var activeShift = (await _shiftService.FindAsync(s => s.IsOpen)).FirstOrDefault();
+            var activeShift = (await _shiftService.FindAsync(s => s.IsOpen && s.TenantId == tenantId)).FirstOrDefault();
 
-            // 3. حفظ حركة السداد
             var debt = new DebtPayment
             {
                 CustomerId = customerId,
                 Amount = amountPaid,
                 PaymentDate = DateTime.UtcNow,
                 ShiftId = activeShift?.Id,
-                TenantId = _currentTenantService.TenantId ?? string.Empty
+                TenantId = tenantId
             };
 
             await _debtPaymentService.AddAsync(debt);
             await _debtPaymentService.SaveChangesAsync();
 
-            // 4. تحديث إجمالي الوردية النشطة
             if (activeShift != null)
             {
                 activeShift.TotalDebtCollected += amountPaid;
