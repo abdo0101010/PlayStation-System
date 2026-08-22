@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using PlaystationSystem.Models;
+using PlaystationSystem.Services;
 using PlaystationSystem.ViewModel;
 
 namespace PlaystationSystem.Controllers
@@ -11,16 +13,28 @@ namespace PlaystationSystem.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-        public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, RoleManager<IdentityRole> roleManager) { 
+        private readonly ApplicationDbContext _context;
+        private readonly ICurrentTenantService _currentTenantService;
 
+        public AccountController(
+            UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager,
+            RoleManager<IdentityRole> roleManager,
+            ApplicationDbContext context,
+            ICurrentTenantService currentTenantService)
+        {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
+            _context = context;
+            _currentTenantService = currentTenantService;
         }
+
         public IActionResult Index()
         {
             return View();
         }
+
         [HttpGet]
         public IActionResult Register()
         {
@@ -36,82 +50,141 @@ namespace PlaystationSystem.Controllers
                 return View(user);
             }
 
+            // ربط الكاشير المسجل بالصالة الحالية
+            var tenantId = _currentTenantService.TenantId;
+
             var newUser = new ApplicationUser
             {
                 UserName = user.UserName,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
                 FullName = user.FullName,
-                IsActive = true // 👈 ضمان تفعيل الحساب فور إنشائه
+                TenantId = tenantId,
+                IsActive = true,
+                EmailConfirmed = true
             };
 
             var result = await _userManager.CreateAsync(newUser, user.Password);
 
             if (result.Succeeded)
             {
-                await _userManager.AddToRoleAsync(newUser, "Cashier"); 
+                if (!await _roleManager.RoleExistsAsync("Cashier"))
+                {
+                    await _roleManager.CreateAsync(new IdentityRole("Cashier"));
+                }
 
+                await _userManager.AddToRoleAsync(newUser, "Cashier");
+                TempData["SuccessMessage"] = "تم إنشاء الحساب بنجاح.";
                 return RedirectToAction("Index", "Home");
             }
 
-  
             foreach (var error in result.Errors)
             {
                 ModelState.AddModelError(string.Empty, error.Description);
             }
 
-            return View(user); 
+            return View(user);
         }
+
         [HttpGet]
-        public async Task<IActionResult> Login()
+        public IActionResult Login()
         {
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
             return View();
         }
+
         [HttpPost]
-        public async Task<IActionResult> Login(LoginVIewModel loginViewModel)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(LoginVIewModel loginViewModel, string? returnUrl = null)
         {
             if (ModelState.IsValid)
             {
-                var user = await _userManager.FindByNameAsync(loginViewModel.UserName);
-               
-                if (user != null) {
+                // البحث عن المستخدم بدون الـ Global Filter لضمان جلبه سواء باسم المستخدم أو البريد
+                var user = await _userManager.Users
+                    .IgnoreQueryFilters()
+                    .FirstOrDefaultAsync(u => u.UserName == loginViewModel.UserName || u.Email == loginViewModel.UserName);
+
+                if (user != null)
+                {
+                    // 1. التحقق من تفعيل حساب المستخدم الفردي
                     if (!user.IsActive)
                     {
-                        ModelState.AddModelError(string.Empty, "هذا الحساب معطل حالياً، يرجى مراجعة الأدمن.");
+                        ModelState.AddModelError(string.Empty, "هذا الحساب معطل حالياً، يرجى مراجعة إدارة النظام.");
                         return View(loginViewModel);
                     }
-                  var result = await _userManager.CheckPasswordAsync(user, loginViewModel.Password);
-                    if (result)
-                    {
-                        await _signInManager.SignInAsync(user, loginViewModel.RememberMe);
 
+                    var isSuperAdmin = await _userManager.IsInRoleAsync(user, "SuperAdmin");
+
+                    // 2. إذا لم يكن SuperAdmin، نتحقق من حالة اشتراك المنشأة (Tenant)
+                    if (!isSuperAdmin && !string.IsNullOrEmpty(user.TenantId))
+                    {
+                        var tenant = await _context.Tenants
+                            .IgnoreQueryFilters()
+                            .FirstOrDefaultAsync(t => t.Id == user.TenantId);
+
+                        if (tenant == null || !tenant.IsActive)
+                        {
+                            ModelState.AddModelError(string.Empty, "عذراً، اشتراك هذه الصالة معطل حالياً، يرجى التواصل مع الإدارة للتجديد.");
+                            return View(loginViewModel);
+                        }
+
+                        if (tenant.SubscriptionEndDate.HasValue && tenant.SubscriptionEndDate.Value < DateTime.UtcNow)
+                        {
+                            ModelState.AddModelError(string.Empty, "انتهت فترة اشتراك هذه الصالة. يرجى تجديد الاشتراك للمتابعة.");
+                            return View(loginViewModel);
+                        }
+                    }
+
+                    // 3. التحقق من كلمة المرور وتسجيل الدخول
+                    var result = await _signInManager.PasswordSignInAsync(user.UserName!, loginViewModel.Password, loginViewModel.RememberMe, lockoutOnFailure: false);
+
+                    if (result.Succeeded)
+                    {
+                        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                        {
+                            return Redirect(returnUrl);
+                        }
+
+                        // توجيه السوبر أدمن لإدارة الاشتراكات والمحلات
+                        if (isSuperAdmin)
+                        {
+                            return RedirectToAction("Index", "AdminManagement");
+                        }
+
+                        // توجيه الكاشير والأدمن لصفحة فتح الوردية
                         return RedirectToAction("OpenShift", "Shift");
                     }
-                    else
-                    {
-                        
-                        ModelState.AddModelError("", "Invalid password.");
-                    }
+
+                    ModelState.AddModelError(string.Empty, "كلمة المرور غير صحيحة.");
                 }
                 else
                 {
-                    ModelState.AddModelError("", "User not found.");
+                    ModelState.AddModelError(string.Empty, "اسم المستخدم أو البريد الإلكتروني غير موجود.");
                 }
             }
+
             return View(loginViewModel);
         }
-        [HttpGet]
+
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction(nameof(Login));
         }
+
         [HttpGet]
         public IActionResult AccessDenied()
         {
             return View();
         }
+
+        [Authorize(Roles = "SuperAdmin")]
         [HttpGet]
         public IActionResult RolesList()
         {
@@ -119,14 +192,14 @@ namespace PlaystationSystem.Controllers
             return View(roles);
         }
 
-        // 2. شاشة إضافة رول جديدة
+        [Authorize(Roles = "SuperAdmin")]
         [HttpGet]
         public IActionResult CreateRole()
         {
             return View();
         }
 
-        // 3. استقبال وحفظ الرول
+        [Authorize(Roles = "SuperAdmin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateRole(CreateRoleViewModel model)
@@ -136,17 +209,18 @@ namespace PlaystationSystem.Controllers
                 return View(model);
             }
 
-            var roleExist = await _roleManager.RoleExistsAsync(model.RoleName.Trim());
+            var roleName = model.RoleName.Trim();
+            var roleExist = await _roleManager.RoleExistsAsync(roleName);
             if (roleExist)
             {
                 ModelState.AddModelError(string.Empty, "هذه الرول موجودة بالفعل!");
                 return View(model);
             }
 
-            var result = await _roleManager.CreateAsync(new IdentityRole(model.RoleName.Trim()));
+            var result = await _roleManager.CreateAsync(new IdentityRole(roleName));
             if (result.Succeeded)
             {
-                TempData["SuccessMessage"] = $"تمت إضافة الرول ({model.RoleName}) بنجاح.";
+                TempData["SuccessMessage"] = $"تمت إضافة الرول ({roleName}) بنجاح.";
                 return RedirectToAction(nameof(RolesList));
             }
 
@@ -157,19 +231,21 @@ namespace PlaystationSystem.Controllers
 
             return View(model);
         }
+
         [Authorize(Roles = "SuperAdmin")]
         [HttpGet]
         public IActionResult CreateAdmin()
         {
             return View();
         }
+
         [Authorize(Roles = "SuperAdmin")]
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateAdmin(RegisterViewModel model, string selectedRole)
         {
             if (ModelState.IsValid)
             {
-                // 1. التأكد أولاً من عدم تكرار اسم المستخدم أو الإيميل
                 var existingUser = await _userManager.FindByNameAsync(model.UserName);
                 if (existingUser != null)
                 {
@@ -189,7 +265,6 @@ namespace PlaystationSystem.Controllers
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
-                    // 2. التأكد من وجود الرتبة وإنشائها إذا لم تكن موجودة
                     if (!string.IsNullOrEmpty(selectedRole))
                     {
                         if (!await _roleManager.RoleExistsAsync(selectedRole))
@@ -203,7 +278,6 @@ namespace PlaystationSystem.Controllers
                     return RedirectToAction("Index", "Home");
                 }
 
-                // 3. إضافة أخطاء Identity (مثل شروط قوة كلمة المرور)
                 foreach (var error in result.Errors)
                 {
                     ModelState.AddModelError(string.Empty, error.Description);
@@ -212,6 +286,5 @@ namespace PlaystationSystem.Controllers
 
             return View(model);
         }
-
     }
 }
