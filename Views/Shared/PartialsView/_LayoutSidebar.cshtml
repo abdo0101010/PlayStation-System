@@ -1,5 +1,10 @@
 ﻿@using System.Security.Claims
 
+@{
+    var currentController = ViewContext.RouteData.Values["Controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["Action"]?.ToString();
+}
+
 <!-- السايدبار متجاوبة: تظهر كـ Offcanvas على الموبايل وسايدبار عادية على الشاشات الكبيرة -->
 <div class="offcanvas-lg offcanvas-end bg-dark text-white shadow-sm border-start border-secondary border-opacity-25" tabindex="-1" id="sidebarMenu" aria-labelledby="sidebarMenuLabel" style="min-width: 260px; max-width: 280px;" dir="rtl">
 
@@ -35,45 +40,51 @@
                 </div>
             </div>
 
-            <!-- Navigation Links -->
+            <!-- Navigation Links (Dynamic Active State) -->
             <ul class="nav nav-pills flex-column gap-1 mb-3">
                 <li class="nav-item">
-                    <a asp-controller="Device" asp-action="Index" class="nav-link text-white active d-flex align-items-center gap-2 py-2">
+                    <a asp-controller="Device" asp-action="Index"
+                       class="nav-link d-flex align-items-center gap-2 py-2 @(currentController == "Device" && currentAction == "Index" ? "active text-white" : "text-white-50")">
                         <i class="fa-solid fa-gauge-high text-info" style="width: 22px;"></i>
                         <span>لوحة الشاشات</span>
                     </a>
                 </li>
 
                 <li class="nav-item">
-                    <a asp-controller="Session" asp-action="ActiveSessions" class="nav-link text-white-50 d-flex align-items-center gap-2 py-2">
+                    <a asp-controller="Session" asp-action="ActiveSessions"
+                       class="nav-link d-flex align-items-center gap-2 py-2 @(currentController == "Session" ? "active text-white" : "text-white-50")">
                         <i class="fa-solid fa-clock text-success" style="width: 22px;"></i>
                         <span>الجلسات المفتوحة</span>
                     </a>
                 </li>
 
                 <li class="nav-item">
-                    <a asp-controller="Device" asp-action="GetPricing" class="nav-link text-white-50 d-flex align-items-center gap-2 py-2">
+                    <a asp-controller="Device" asp-action="GetPricing"
+                       class="nav-link d-flex align-items-center gap-2 py-2 @(currentController == "Device" && currentAction == "GetPricing" ? "active text-white" : "text-white-50")">
                         <i class="fa-solid fa-tv text-warning" style="width: 22px;"></i>
                         <span>الأجهزة والأسعار</span>
                     </a>
                 </li>
 
                 <li class="nav-item">
-                    <a asp-controller="Drink" asp-action="Index" class="nav-link text-white-50 d-flex align-items-center gap-2 py-2">
+                    <a asp-controller="Drink" asp-action="Index"
+                       class="nav-link d-flex align-items-center gap-2 py-2 @(currentController == "Drink" ? "active text-white" : "text-white-50")">
                         <i class="fa-solid fa-mug-hot text-danger" style="width: 22px;"></i>
                         <span>المشروبات والمخزن</span>
                     </a>
                 </li>
 
                 <li class="nav-item">
-                    <a asp-controller="Admin" asp-action="GetAllCustomers" class="nav-link text-white-50 d-flex align-items-center gap-2 py-2">
+                    <a asp-controller="Admin" asp-action="GetAllCustomers"
+                       class="nav-link d-flex align-items-center gap-2 py-2 @(currentController == "Admin" && currentAction == "GetAllCustomers" ? "active text-white" : "text-white-50")">
                         <i class="fa-solid fa-users text-primary" style="width: 22px;"></i>
                         <span>العملاء والديون</span>
                     </a>
                 </li>
 
                 <li class="nav-item">
-                    <a asp-controller="Shift" asp-action="GetReporet" class="nav-link text-white-50 d-flex align-items-center gap-2 py-2">
+                    <a asp-controller="Shift" asp-action="GetReporet"
+                       class="nav-link d-flex align-items-center gap-2 py-2 @(currentController == "Shift" ? "active text-white" : "text-white-50")">
                         <i class="fa-solid fa-cash-register text-info" style="width: 22px;"></i>
                         <span>الورديات والتقارير</span>
                     </a>
@@ -87,7 +98,8 @@
                     </li>
 
                     <li class="nav-item">
-                        <a asp-controller="Admin" asp-action="Index" class="nav-link text-white-50 d-flex align-items-center gap-2 py-2">
+                        <a asp-controller="Admin" asp-action="Index"
+                           class="nav-link d-flex align-items-center gap-2 py-2 @(currentController == "Admin" && currentAction == "Index" ? "active text-white" : "text-white-50")">
                             <i class="fa-solid fa-users-gear text-warning" style="width: 22px;"></i>
                             <span>إدارة الموظفين والأدوار</span>
                         </a>
@@ -102,14 +114,16 @@
                     </li>
 
                     <li class="nav-item">
-                        <a asp-controller="TenantManagement" asp-action="Create" class="nav-link text-warning d-flex align-items-center gap-2 py-2">
+                        <a asp-controller="TenantManagement" asp-action="Create"
+                           class="nav-link d-flex align-items-center gap-2 py-2 @(currentController == "TenantManagement" && currentAction == "Create" ? "active text-white" : "text-warning")">
                             <i class="fa-solid fa-user-plus text-warning" style="width: 22px;"></i>
                             <span>إضافة فرع / أدمن جديد</span>
                         </a>
                     </li>
 
                     <li class="nav-item">
-                        <a asp-controller="AdminManagement" asp-action="Index" class="nav-link text-white-50 d-flex align-items-center gap-2 py-2">
+                        <a asp-controller="AdminManagement" asp-action="Index"
+                           class="nav-link d-flex align-items-center gap-2 py-2 @(currentController == "AdminManagement" ? "active text-white" : "text-white-50")">
                             <i class="fa-solid fa-users-rectangle text-info" style="width: 22px;"></i>
                             <span>إدارة اشتراكات الفروع</span>
                         </a>

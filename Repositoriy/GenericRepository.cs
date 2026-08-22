@@ -4,60 +4,101 @@ using System.Linq.Expressions;
 
 namespace PlaystationSystem.Repositoriy
 {
-    public class GenericRepository<T>: IGenericRepository<T> where T : class
+    public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
-        private ApplicationDbContext _context;
-        private DbSet<T> entities;
-        public GenericRepository(ApplicationDbContext context) {
+        private readonly ApplicationDbContext _context;
+        private readonly DbSet<T> entities;
+        private readonly ICurrentTenantRepositoriy _currentTenantRepository;
+
+        public GenericRepository(ApplicationDbContext context, ICurrentTenantRepositoriy currentTenantRepository)
+        {
             _context = context;
             entities = context.Set<T>();
+            _currentTenantRepository = currentTenantRepository;
         }
-        public async Task AddAsync(T entity) {
-           await  _context.AddAsync( entity );
-            _context.SaveChanges();
-        }
-        public async Task Update(T Entity)
+
+        public async Task AddAsync(T entity)
         {
-            if (entities == null)
+            // إسناد الـ TenantId تلقائياً قبل الحفظ إذا كانت الخاصية موجودة وفارغة
+            var tenantProp = typeof(T).GetProperty("TenantId");
+            if (tenantProp != null && tenantProp.CanWrite)
             {
-                return;
+                var currentValue = tenantProp.GetValue(entity) as string;
+                if (string.IsNullOrEmpty(currentValue))
+                {
+                    tenantProp.SetValue(entity, _currentTenantRepository.TenantId);
+                }
             }
-            _context.Update(Entity);
+
+            await _context.AddAsync(entity);
             await _context.SaveChangesAsync();
         }
+
+        public async Task Update(T entity)
+        {
+            if (entity == null) return;
+
+            _context.Update(entity);
+            await _context.SaveChangesAsync();
+        }
+
         public async Task Delete(int id)
         {
-            var entity = await entities.FindAsync(id);
-            if (id <= 0)
-            {
-                return;
-            }
-             _context.Remove(entity);
-            await _context.SaveChangesAsync();
+            if (id <= 0) return;
 
+            var entity = await entities.FindAsync(id);
+            if (entity != null)
+            {
+                _context.Remove(entity);
+                await _context.SaveChangesAsync();
+            }
         }
+
+        // جلب عنصر بالـ ID مع التأكد من ملكيته للفرع الحالي
         public async Task<T?> GetByIdAsync(string id)
         {
-            return await entities.FindAsync(id);
+            IQueryable<T> query = entities;
+
+            if (typeof(T).GetProperty("TenantId") != null && !_currentTenantRepository.IsSuperAdmin)
+            {
+                var currentTenantId = _currentTenantRepository.TenantId;
+                query = query.Where(e => EF.Property<string>(e, "TenantId") == currentTenantId);
+            }
+
+            return await query.FirstOrDefaultAsync(e => EF.Property<string>(e, "Id") == id);
         }
 
-        // 5. جلب كل العناصر
+        // جلب كل العناصر مع تطبيق عزل الـ Multi-Tenancy
         public async Task<IEnumerable<T>> GetAllAsync()
         {
-            return await entities.ToListAsync();
+            IQueryable<T> query = entities;
+
+            if (typeof(T).GetProperty("TenantId") != null && !_currentTenantRepository.IsSuperAdmin)
+            {
+                var currentTenantId = _currentTenantRepository.TenantId;
+                query = query.Where(e => EF.Property<string>(e, "TenantId") == currentTenantId);
+            }
+
+            return await query.ToListAsync();
+        }
+
+        public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate)
+        {
+            IQueryable<T> query = entities;
+
+            if (typeof(T).GetProperty("TenantId") != null && !_currentTenantRepository.IsSuperAdmin)
+            {
+                var currentTenantId = _currentTenantRepository.TenantId;
+                query = query.Where(e => EF.Property<string>(e, "TenantId") == currentTenantId);
+            }
+
+            return await query.Where(predicate).ToListAsync();
         }
 
         public async Task<int> SaveChangesAsync()
         {
             return await _context.SaveChangesAsync();
         }
-        public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate)
-        {
-            return await entities.Where(predicate).ToListAsync();
-        }
-
-
-       
 
         public async Task Delete(T entity)
         {
@@ -65,11 +106,13 @@ namespace PlaystationSystem.Repositoriy
             {
                 throw new ArgumentNullException(nameof(entity));
             }
-         entities.Remove(entity);
-        }  
+            entities.Remove(entity);
+            await _context.SaveChangesAsync();
+        }
+
         public async Task DeleteById(string id)
         {
-            var entity = await entities.FindAsync(id);
+            var entity = await GetByIdAsync(id);
             if (entity == null)
             {
                 throw new ArgumentNullException(nameof(entity));
@@ -77,8 +120,5 @@ namespace PlaystationSystem.Repositoriy
             entities.Remove(entity);
             await _context.SaveChangesAsync();
         }
-        
-
-        
     }
 }
