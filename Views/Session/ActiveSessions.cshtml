@@ -15,7 +15,7 @@
             <p class="text-muted small mb-0">مراقبة حية للشاشات التي تعمل الآن مع عداد الوقت والتكلفة اللحظية</p>
         </div>
         <div class="d-flex gap-2">
-            <a  asp-action="start" class="btn btn-success rounded-pill px-4 shadow-sm fw-semibold">
+            <a asp-action="Start" class="btn btn-success rounded-pill px-4 shadow-sm fw-semibold">
                 <i class="fa-solid fa-play me-1"></i> تشغيل جهاز جديد
             </a>
             <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary rounded-pill px-3">
@@ -83,7 +83,9 @@
 
                             <!-- Live Stopwatch Box -->
                             <div class="bg-light rounded-3 p-3 text-center mb-3 border">
-                                <span class="text-muted small d-block mb-1">الوقت المنقضي</span>
+                                <span class="text-muted small d-block mb-1 timer-title">
+                                    @(session.SessionType == "Limit" ? "الوقت المتبقي (محدد)" : "الوقت المنقضي (مفتوح)")
+                                </span>
                                 <h2 class="fw-bold text-danger mb-1 live-timer font-monospace" dir="ltr">00:00:00</h2>
                                 <small class="text-muted">وقت البدء: @session.StartTime.ToString("hh:mm tt")</small>
                             </div>
@@ -114,6 +116,18 @@
 
 @section Scripts {
     <script>
+        function playAlertSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                osc.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } catch(e) { }
+        }
+
         function updateTimers() {
             const cards = document.querySelectorAll('.session-card');
             const now = new Date();
@@ -121,32 +135,80 @@
             cards.forEach(card => {
                 const startStr = card.getAttribute('data-start');
                 const hourRate = parseFloat(card.getAttribute('data-price')) || 0;
+                const sessionType = card.getAttribute('data-type');
+                const targetMinutes = parseInt(card.getAttribute('data-target')) || 0;
                 const startTime = new Date(startStr);
 
-                const diffMs = Math.max(0, now - startTime);
-                const totalSec = Math.floor(diffMs / 1000);
+                const elapsedMs = Math.max(0, now - startTime);
+                const elapsedSec = Math.floor(elapsedMs / 1000);
+                const elapsedMinutes = elapsedMs / (1000 * 60);
 
-                const hrs = String(Math.floor(totalSec / 3600)).padStart(2, '0');
-                const mins = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
-                const secs = String(totalSec % 60).padStart(2, '0');
-
+                const timerTitle = card.querySelector('.timer-title');
                 const timerElem = card.querySelector('.live-timer');
-                if (timerElem) {
-                    timerElem.innerText = `${hrs}:${mins}:${secs}`;
-                }
-
-                // حساب التكلفة بالدقائق
-                const totalMinutes = diffMs / (1000 * 60);
-                const currentCost = (totalMinutes / 60) * hourRate;
-
                 const costElem = card.querySelector('.live-cost');
-                if (costElem) {
-                    costElem.innerText = currentCost.toFixed(2) + " ج.م";
+
+                if (sessionType === "Limit" && targetMinutes > 0) {
+                    const totalTargetSec = targetMinutes * 60;
+                    const remainingSec = totalTargetSec - elapsedSec;
+
+                    if (remainingSec > 0) {
+                        if (timerTitle) timerTitle.innerText = "الوقت المتبقي (محدد)";
+
+                        const hrs = String(Math.floor(remainingSec / 3600)).padStart(2, '0');
+                        const mins = String(Math.floor((remainingSec % 3600) / 60)).padStart(2, '0');
+                        const secs = String(remainingSec % 60).padStart(2, '0');
+
+                        if (timerElem) {
+                            timerElem.innerText = `${hrs}:${mins}:${secs}`;
+                            timerElem.classList.remove('text-danger', 'blink-alert');
+                            timerElem.classList.add('text-primary');
+                        }
+                    } else {
+                        if (timerTitle) timerTitle.innerText = "انتهى الوقت! (وقت إضافي)";
+
+                        if (remainingSec === 0) {
+                            playAlertSound();
+                        }
+
+                        const overtimeSec = Math.abs(remainingSec);
+                        const hrs = String(Math.floor(overtimeSec / 3600)).padStart(2, '0');
+                        const mins = String(Math.floor((overtimeSec % 3600) / 60)).padStart(2, '0');
+                        const secs = String(overtimeSec % 60).padStart(2, '0');
+
+                        if (timerElem) {
+                            timerElem.innerText = `+${hrs}:${mins}:${secs}`;
+                            timerElem.classList.remove('text-primary');
+                            timerElem.classList.add('text-danger', 'blink-alert');
+                        }
+                    }
+
+                    const effectiveMinutes = Math.max(targetMinutes, elapsedMinutes);
+                    const currentCost = (effectiveMinutes / 60) * hourRate;
+
+                    if (costElem) {
+                        costElem.innerText = currentCost.toFixed(2) + " ج.م";
+                    }
+                } else {
+                    if (timerTitle) timerTitle.innerText = "الوقت المنقضي (مفتوح)";
+
+                    const hrs = String(Math.floor(elapsedSec / 3600)).padStart(2, '0');
+                    const mins = String(Math.floor((elapsedSec % 3600) / 60)).padStart(2, '0');
+                    const secs = String(elapsedSec % 60).padStart(2, '0');
+
+                    if (timerElem) {
+                        timerElem.innerText = `${hrs}:${mins}:${secs}`;
+                        timerElem.classList.remove('text-primary', 'blink-alert');
+                        timerElem.classList.add('text-danger');
+                    }
+
+                    const currentCost = (elapsedMinutes / 60) * hourRate;
+                    if (costElem) {
+                        costElem.innerText = currentCost.toFixed(2) + " ج.م";
+                    }
                 }
             });
         }
 
-        // تشغيل العداد وتحديثه كل ثانية
         setInterval(updateTimers, 1000);
         updateTimers();
     </script>
@@ -154,6 +216,10 @@
     <style>
         .pulse-badge {
             animation: pulse 1.5s infinite;
+        }
+
+        .blink-alert {
+            animation: blinker 1s linear infinite;
         }
 
         @@keyframes pulse {
@@ -170,6 +236,12 @@
             100% {
                 opacity: 1;
                 transform: scale(1);
+            }
+        }
+
+        @@keyframes blinker {
+            50% {
+                opacity: 0.2;
             }
         }
     </style>
