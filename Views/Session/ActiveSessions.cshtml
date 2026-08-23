@@ -153,9 +153,12 @@
                 const hourRate = parseFloat(card.getAttribute('data-price')) || 0;
                 const sessionType = card.getAttribute('data-type');
                 const targetMinutes = parseInt(card.getAttribute('data-target')) || 0;
+
                 const startTime = new Date(startStr);
 
-                const elapsedMs = Math.max(0, now - startTime);
+                let elapsedMs = now.getTime() - startTime.getTime();
+                if (elapsedMs < 0) elapsedMs = 0;
+
                 const elapsedSec = Math.floor(elapsedMs / 1000);
                 const elapsedMinutes = elapsedMs / (1000 * 60);
 
@@ -225,8 +228,10 @@
             });
         }
 
-        setInterval(updateTimers, 1000);
-        updateTimers();
+        document.addEventListener('DOMContentLoaded', () => {
+            updateTimers();
+            setInterval(updateTimers, 1000);
+        });
     </script>
 
     <style>
