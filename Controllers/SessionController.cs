@@ -170,7 +170,7 @@ namespace PlaystationSystem.Controllers
                 ? await _customerService.GetByIdAsync(session.CustomerId)
                 : null;
 
-            var endTime = DateTime.UtcNow;
+            var endTime = DateTime.Now;
             var duration = endTime - session.StartTime;
             decimal totalMinutes = (decimal)duration.TotalMinutes;
 
