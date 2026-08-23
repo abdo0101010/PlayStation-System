@@ -1,0 +1,125 @@
+﻿@model IEnumerable<PlaystationSystem.ViewModel.ActiveSessionViewModel>
+
+@{
+    ViewData["Title"] = "سجل الجلسات";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid py-4" dir="rtl">
+
+    <!-- Top Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">
+                <i class="fa-solid fa-clock-rotate-left text-warning me-2"></i>سجل الجلسات السابقة والنشطة
+            </h3>
+            <p class="text-muted small mb-0">عرض كافة الجلسات مع إمكانية الفحص، المراجعة، والحذف المباشر للآدمن</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="ActiveSessions" class="btn btn-primary rounded-pill px-4 shadow-sm fw-semibold">
+                <i class="fa-solid fa-gamepad me-1"></i> الجلسات النشطة حالياً
+            </a>
+        </div>
+    </div>
+
+    <!-- Table Card -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-header bg-dark text-white py-3 px-4 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0">
+                <i class="fa-solid fa-list me-2 text-warning"></i>جميع الجلسات المسجلة (@Model.Count())
+            </h5>
+            <input type="text" id="tableSearch" class="form-control form-control-sm w-auto rounded-pill px-3" placeholder="بحث باسم الجهاز أو العميل..." onkeyup="filterTable()" />
+        </div>
+
+        <div class="card-body p-0">
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="fa-solid fa-folder-open fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">لا يوجد أي جلسات مسجلة حتى الآن</h5>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 text-center" id="sessionsTable">
+                        <thead class="table-light border-bottom">
+                            <tr>
+                                <th class="py-3">#</th>
+                                <th class="py-3">الجهاز</th>
+                                <th class="py-3">العميل</th>
+                                <th class="py-3">النظام</th>
+                                <th class="py-3">وقت البدء</th>
+                                <th class="py-3">الإجمالي النهائي</th>
+                                <th class="py-3">الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                int index = 1;
+                            }
+                            @foreach (var session in Model)
+                            {
+                                <tr>
+                                    <td class="fw-bold text-muted">@index</td>
+                                    <td>
+                                        <div class="d-flex align-items-center justify-content-center gap-2">
+                                            <i class="fa-solid fa-tv text-primary"></i>
+                                            <span class="fw-bold">@session.DeviceName</span>
+                                            <span class="badge bg-secondary-subtle text-secondary small">@session.DeviceType</span>
+                                        </div>
+                                    </td>
+                                    <td class="fw-semibold">@session.CustomerName</td>
+                                    <td>
+                                        <span class="badge @(session.Mode == "Multi" ? "bg-warning text-dark" : "bg-info") rounded-pill px-3 py-1">
+                                            @(session.Mode == "Multi" ? "زوجي Multi" : "فردي Single")
+                                        </span>
+                                    </td>
+                                    <td dir="ltr" class="font-monospace small">
+                                        @session.StartTime.ToString("yyyy/MM/dd hh:mm tt")
+                                    </td>
+                                    <td class="fw-bold text-success" dir="ltr">
+                                        @session.HourPriceSingle.ToString("N2") ج.م
+                                    </td>
+                                    <td>
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <a asp-action="Details" asp-route-sessionId="@session.SessionId" class="btn btn-sm btn-outline-info rounded-pill px-3 fw-semibold">
+                                                <i class="fa-solid fa-eye me-1"></i> تفاصيل
+                                            </a>
+
+                                            @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+                                            {
+                                                <form asp-action="Delete" asp-route-sessionId="@session.SessionId" method="post" class="d-inline" onsubmit="return confirm('هل أنت متأكد من حذف هذه الجلسة نهائياً وإرجاع المنتجات للمخزن؟');">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-semibold">
+                                                        <i class="fa-solid fa-trash me-1"></i> حذف
+                                                    </button>
+                                                </form>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                                index++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function filterTable() {
+            const input = document.getElementById('tableSearch');
+            const filter = input.value.toLowerCase();
+            const rows = document.querySelectorAll('#sessionsTable tbody tr');
+
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(filter) ? '' : 'none';
+            });
+        }
+    </script>
+}
