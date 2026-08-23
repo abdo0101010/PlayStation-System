@@ -36,19 +36,3 @@
 * **Authentication & Authorization:** ASP.NET Core Identity
 * **Frontend:** Bootstrap 5, FontAwesome, JavaScript (Vanilla JS for dynamic calculations), HTML5/CSS3
 * **Architecture:** MVC Pattern, Generic Repository & Service Pattern
-
----
-
-## 🚀 طريقة التثبيت والتشغيل (Getting Started)
-
-### المتطلبات (Prerequisites)
-* [.NET 8.0 SDK](https://dotnet.microsoft.com/download) أو أحدث.
-* [SQL Server](https://www.microsoft.com/en-us/sql-server) أو LocalDB.
-* Visual Studio 2022 أو VS Code.
-
-### خطوات التشغيل (Installation)
-
-1. **استنساخ المستودع (Clone Repository):**
-   ```bash
-   git clone [https://github.com/your-username/PlaystationSystem.git](https://github.com/your-username/PlaystationSystem.git)
-   cd PlaystationSystem
