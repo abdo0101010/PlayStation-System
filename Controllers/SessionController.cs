@@ -220,7 +220,7 @@ namespace PlaystationSystem.Controllers
             }
 
             var device = await _deviceService.GetByIdAsync(session.DeviceId);
-            var endTime = DateTime.UtcNow;
+            var endTime = DateTime.Now;
             var duration = endTime - session.StartTime;
             decimal totalMinutes = (decimal)duration.TotalMinutes;
 
@@ -314,7 +314,8 @@ namespace PlaystationSystem.Controllers
             var allDevices = (await _deviceService.GetAllAsync()).ToList();
             var allCustomers = (await _customerService.GetAllAsync()).ToList();
 
-            var model = openSessions.Select(s => {
+            var model = openSessions.Select(s =>
+            {
                 var dev = allDevices.FirstOrDefault(d => d.Id == s.DeviceId);
                 var cust = allCustomers.FirstOrDefault(c => c.Id == s.CustomerId);
 
@@ -332,6 +333,125 @@ namespace PlaystationSystem.Controllers
                     HourPriceSingle = dev?.HourPriceSingle ?? 0,
                     HourPriceMulti = dev?.HourPriceMulti ?? 0,
                     ProductsCost = s.ProductsCost
+                };
+            }).ToList();
+
+            return View(model);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        public async Task<IActionResult> Delete(string sessionId)
+        {
+            var session = await _sessionService.GetByIdAsync(sessionId);
+            if (session == null)
+            {
+                TempData["ErrorMessage"] = "الجلسة غير موجودة!";
+                return RedirectToAction("ActiveSessions");
+            }
+
+            var tenantId = _currentTenantService.TenantId;
+            if (!_currentTenantService.IsSuperAdmin && session.TenantId != tenantId)
+            {
+                return Forbid();
+            }
+
+            // 1. إعادة إتاحة الجهاز إذا كانت الجلسة مفتوحة
+            if (session.IsOpen)
+            {
+                var device = await _deviceService.GetByIdAsync(session.DeviceId);
+                if (device != null)
+                {
+                    device.IsActive = true;
+                    await _deviceService.Update(device);
+                }
+            }
+
+            // 2. إرجاع بضاعة البوفيه إلى المخزون وحذف سجلات الطلبات المرتبطة
+            var sessionOrders = await _sessionOrderService.FindAsync(so => so.SessionId == sessionId);
+            if (sessionOrders != null && sessionOrders.Any())
+            {
+                foreach (var order in sessionOrders)
+                {
+                    var product = await _productService.GetByIdAsync(order.ProductId);
+                    if (product != null)
+                    {
+                        product.StockQuantity += order.Quantity; // استرجاع الكمية للمخزن
+                        await _productService.Update(product);
+                    }
+                    await _sessionOrderService.Delete(order);
+                }
+            }
+
+            // 3. حذف الجلسة نهائياً
+            await _sessionService.Delete(session);
+
+            TempData["SuccessMessage"] = "تم حذف الجلسة وإعادة الأصناف للمخزون بنجاح.";
+            return RedirectToAction("ActiveSessions");
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        public async Task<IActionResult> SessionHistory()
+        {
+            var tenantId = _currentTenantService.TenantId;
+            if (string.IsNullOrEmpty(tenantId))
+            {
+                var user = await _userManager.GetUserAsync(User);
+                tenantId = user?.TenantId ?? string.Empty;
+            }
+
+            var isSuperAdmin = _currentTenantService.IsSuperAdmin;
+
+            var sessions = (await _sessionService.GetAllAsync())
+                .Where(s => isSuperAdmin || s.TenantId == tenantId)
+                .OrderByDescending(s => s.StartTime)
+                .ToList();
+
+            var devices = await _deviceService.GetAllAsync();
+            var customers = await _customerService.GetAllAsync();
+            var now = DateTime.Now;
+
+            var model = sessions.Select(s => {
+                var dev = devices.FirstOrDefault(d => d.Id == s.DeviceId);
+                var cust = customers.FirstOrDefault(c => c.Id == s.CustomerId);
+
+                decimal finalAmount = s.TotalAmount;
+
+                // إذا كانت الجلسة لا تزال جارية، نحسب تكلفتها التقديرية الحالية
+                if (s.IsOpen)
+                {
+                    var duration = now - s.StartTime;
+                    if (duration.TotalSeconds < 0) duration = TimeSpan.Zero;
+
+                    decimal totalMinutes = (decimal)duration.TotalMinutes;
+                    decimal hourlyRate = s.Mode == "Multi"
+                        ? (dev?.HourPriceMulti ?? 0)
+                        : (dev?.HourPriceSingle ?? 0);
+
+                    if (s.SessionType == "Limit" && s.TargetMinutes > 0)
+                    {
+                        totalMinutes = Math.Max(s.TargetMinutes, totalMinutes);
+                    }
+
+                    decimal currentDeviceCost = Math.Round((totalMinutes / 60m) * hourlyRate, 2);
+                    finalAmount = (currentDeviceCost + s.ProductsCost) - s.DiscountAmount;
+                    if (finalAmount < 0) finalAmount = 0;
+                }
+
+                return new ActiveSessionViewModel
+                {
+                    SessionId = s.Id,
+                    DeviceId = s.DeviceId,
+                    DeviceName = dev?.Name ?? "غير معروف",
+                    DeviceType = dev?.Type ?? "PS",
+                    CustomerName = cust?.Name ?? "زبون عابر",
+                    StartTime = s.StartTime,
+                    Mode = s.Mode,
+                    SessionType = s.SessionType,
+                    TargetMinutes = s.TargetMinutes,
+                    ProductsCost = s.ProductsCost,
+                    HourPriceSingle = finalAmount // تمرير المبلغ المحسوب
                 };
             }).ToList();
 

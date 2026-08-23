@@ -4,12 +4,12 @@
     ViewData["Title"] = "سجل الورديات والتقارير المالية";
     Layout = "_Layout";
 
-    // حساب إحصائيات سريعة للورديات المغلقة
-    var closedShifts = Model.Where(s => !s.IsOpen).ToList();
-    var totalGaming = closedShifts.Sum(s => s.TotalGamingIncome);
-    var totalBuffet = closedShifts.Sum(s => s.TotalBuffetIncome);
-    var totalExpenses = closedShifts.Sum(s => s.TotalExpenses);
-    var netIncome = (totalGaming + totalBuffet + closedShifts.Sum(s => s.TotalDebtCollected)) - totalExpenses;
+    // حساب الإحصائيات لجميع الورديات (المغلقة + الحالية النشطة)
+    var totalGaming = Model.Sum(s => s.TotalGamingIncome);
+    var totalBuffet = Model.Sum(s => s.TotalBuffetIncome);
+    var totalExpenses = Model.Sum(s => s.TotalExpenses);
+    var totalDebts = Model.Sum(s => s.TotalDebtCollected);
+    var netIncome = (totalGaming + totalBuffet + totalDebts) - totalExpenses;
 }
 
 <div class="container-fluid py-4 px-lg-4" dir="rtl">

@@ -105,6 +105,15 @@
                         </a>
                     </li>
                 }
+                @if (User.IsInRole("Admin") || User.IsInRole("SuperAdmin"))
+                {
+                    <li class="nav-item">
+                        <a class="nav-link text-white d-flex align-items-center gap-2 py-2 px-3 rounded-3" asp-controller="Session" asp-action="SessionHistory">
+                            <i class="fa-solid fa-clock-rotate-left text-warning"></i>
+                            <span>سجل الجلسات السابقة</span>
+                        </a>
+                    </li>
+                }
 
                 <!-- قسم خاص بالسوبر أدمن لإدارة الفروع والاشتراكات -->
                 @if (User.IsInRole("SuperAdmin"))

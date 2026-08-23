@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AspNetCoreGeneratedDocument;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PlaystationSystem.Models;
@@ -92,7 +93,7 @@ namespace PlaystationSystem.Controllers
             await _shiftService.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "تم فتح الوردية بنجاح.";
-            return RedirectToAction(nameof(GetReporet));
+            return RedirectToAction(nameof(GetReport));
         }
 
         [HttpGet]
@@ -210,10 +211,34 @@ namespace PlaystationSystem.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetReporet()
+        [Authorize(Roles = "Admin,SuperAdmin")]
+        public async Task<IActionResult> GetReport()
         {
-            var shifts = await _shiftServices.GetDescShift();
-            return View(shifts);
+            var tenantId = await GetCurrentTenantIdAsync();
+            var isSuperAdmin = _currentTenantService.IsSuperAdmin;
+
+            // جلب جميع الورديات
+            var allShifts = (await _shiftService.GetAllAsync())
+                .Where(s => isSuperAdmin || s.TenantId == tenantId)
+                .OrderByDescending(s => s.StartTime)
+                .ToList();
+
+            // جلب الوردية المفتوحة حالياً إن وجدت لحساب أرقامها اللحظية
+            var openShift = allShifts.FirstOrDefault(s => s.IsOpen);
+            if (openShift != null)
+            {
+                var cashierName = User.FindFirst("FullName")?.Value ?? User.Identity?.Name ?? "الكاشير";
+                var summary = await _shiftServices.PrepareCloseShiftSummaryAsync(openShift, cashierName);
+
+                // تحديث قيم الوردية المفتوحة في الذاكرة للعرض فقط
+                openShift.TotalGamingIncome = summary.TotalGamingIncome;
+                openShift.TotalBuffetIncome = summary.TotalBuffetIncome;
+                openShift.TotalDebtCollected = summary.TotalDebtCollected;
+                openShift.TotalExpenses = summary.TotalExpenses;
+                openShift.ExpectedCash = (openShift.StartingCash + summary.TotalGamingIncome + summary.TotalBuffetIncome + summary.TotalDebtCollected) - summary.TotalExpenses;
+            }
+
+            return View(allShifts);
         }
 
         [HttpGet]
